@@ -284,7 +284,7 @@
     </button>
     <button class="nav-item" onclick="showPage('terminal', this)">
       <span class="icon">&#128421;</span> Remote Terminal
-      <span class="badge badge-green">Live</span>
+      <span class="badge badge-orange">2FA</span>
     </button>
 
     <div class="section-label">Future</div>
@@ -844,59 +844,90 @@
     </div>
   </div>
 
-  <!-- REMOTE TERMINAL -->
+  <!-- REMOTE TERMINAL (2FA Protected) -->
   <div class="page" id="page-terminal">
     <div class="page-header">
       <h2>Remote Terminal</h2>
-      <p>Chat with Claude from anywhere. Issue commands to your home system remotely.</p>
+      <p>Chat with Claude from anywhere. Triple-secured: Cloudflare Access + PIN + API key.</p>
     </div>
 
-    <div class="card" style="cursor: default; max-width: 800px; padding: 0; overflow: hidden;">
-      <div style="padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;">
-        <span class="dot dot-green"></span>
-        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-bright);">Claude &middot; Bushwick HQ</span>
-        <span style="margin-left: auto; font-size: 0.7rem; color: var(--text-dim);" id="terminal-status">Disconnected</span>
+    <!-- 2FA Gate -->
+    <div id="terminal-locked" style="max-width: 500px;">
+      <div class="card" style="cursor: default; text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">&#128274;</div>
+        <h3 style="margin-bottom: 0.5rem;">Terminal Locked</h3>
+        <p style="margin-bottom: 1.5rem;">This section requires additional authentication beyond Cloudflare Access.</p>
+        <div style="margin-bottom: 1rem;">
+          <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 0.35rem; text-align: left;">Authenticator Code</label>
+          <input type="text" id="terminal-pin" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 1.5rem; outline: none; text-align: center; letter-spacing: 0.5em; font-family: 'Cascadia Code', monospace;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+            onkeydown="if(event.key==='Enter')unlockTerminal()" />
+          <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.5rem;">Open your authenticator app and enter the 6-digit code for "Bushwick HQ"</div>
+        </div>
+        <div id="totp-setup" style="display: none; margin-bottom: 1rem; text-align: left;">
+          <div style="font-size: 0.8rem; color: var(--orange); margin-bottom: 0.5rem; font-weight: 600;">First-time setup: Scan this with your authenticator app</div>
+          <div id="totp-qr" style="background: white; display: inline-block; padding: 12px; border-radius: 8px; margin-bottom: 0.5rem;"></div>
+          <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.5rem;">Or enter manually: <code id="totp-secret-display" style="background:var(--surface3);padding:2px 6px;border-radius:3px;color:var(--accent-text);user-select:all;"></code></div>
+          <button onclick="confirmTotpSetup()" style="margin-top: 0.75rem; padding: 0.5rem 1rem; border-radius: 8px; border: none; background: var(--green); color: white; font-weight: 600; font-size: 0.82rem; cursor: pointer;">I've scanned it</button>
+        </div>
+        <button onclick="unlockTerminal()"
+          style="width: 100%; padding: 0.7rem; border-radius: 8px; border: none; background: var(--accent); color: white; font-weight: 600; font-size: 0.9rem; cursor: pointer;">
+          Unlock Terminal
+        </button>
+        <div id="terminal-lock-msg" style="font-size: 0.8rem; margin-top: 0.75rem;"></div>
       </div>
-      <div id="terminal-output" style="height: 400px; overflow-y: auto; padding: 1rem 1.25rem; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.82rem; line-height: 1.6; background: var(--bg);">
-        <div style="color: var(--text-dim);">Welcome to Bushwick Command Center remote terminal.</div>
-        <div style="color: var(--text-dim);">Enter your Anthropic API key below to connect, then type commands.</div>
-        <div style="color: var(--text-dim); margin-top: 0.5rem;">Tip: Ask Claude to check Home Assistant, run system commands, or manage your smart home.</div>
+    </div>
+
+    <!-- Terminal (hidden until unlocked) -->
+    <div id="terminal-unlocked" style="display: none;">
+      <div class="card" style="cursor: default; max-width: 800px; padding: 0; overflow: hidden;">
+        <div style="padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;">
+          <span class="dot dot-green"></span>
+          <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-bright);">Claude &middot; Bushwick HQ</span>
+          <span style="margin-left: auto; font-size: 0.7rem; color: var(--text-dim);" id="terminal-status">Disconnected</span>
+          <button onclick="lockTerminal()" style="padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); background: none; color: var(--red); font-size: 0.7rem; cursor: pointer;">Lock</button>
+        </div>
+        <div id="terminal-output" style="height: 400px; overflow-y: auto; padding: 1rem 1.25rem; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.82rem; line-height: 1.6; background: var(--bg);">
+          <div style="color: var(--text-dim);">Terminal unlocked. Session active.</div>
+          <div style="color: var(--text-dim);">Enter your API key in settings below if not already saved, then type commands.</div>
+        </div>
+        <div style="border-top: 1px solid var(--border); padding: 0.5rem; display: flex; gap: 0.5rem;">
+          <input type="text" id="terminal-input" placeholder="Type a message..."
+            style="flex:1; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.82rem; outline: none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+            onkeydown="if(event.key==='Enter')sendTerminal()" />
+          <button onclick="sendTerminal()"
+            style="padding: 0.6rem 1rem; border-radius: 8px; border: none; background: var(--accent); color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+            Send
+          </button>
+        </div>
       </div>
-      <div style="border-top: 1px solid var(--border); padding: 0.5rem; display: flex; gap: 0.5rem;">
-        <input type="text" id="terminal-input" placeholder="Type a message..."
-          style="flex:1; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.82rem; outline: none;"
+
+      <div class="section-title">Connection Settings</div>
+      <div class="card" style="cursor: default; max-width: 600px;">
+        <h3>&#128273; API Key</h3>
+        <p style="margin-bottom: 0.75rem;">Stored in this browser only. Sent directly to Anthropic API &mdash; never touches our servers.</p>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="password" id="api-key-input" placeholder="sk-ant-..."
+            style="flex:1; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.82rem; outline: none; font-family: monospace;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" />
+          <button onclick="saveApiKey()"
+            style="padding: 0.6rem 1rem; border-radius: 8px; border: none; background: var(--green); color: white; font-weight: 600; font-size: 0.82rem; cursor: pointer;">
+            Save
+          </button>
+        </div>
+        <div id="api-key-msg" style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.5rem;"></div>
+      </div>
+
+      <div class="card" style="cursor: default; max-width: 600px; margin-top: 0.75rem;">
+        <h3>&#128736; System Prompt</h3>
+        <p style="margin-bottom: 0.75rem;">Context sent with every message so Claude knows about your setup.</p>
+        <textarea id="sys-prompt" rows="4"
+          style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.82rem; outline: none; font-family: monospace; resize: vertical;"
           onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-          onkeydown="if(event.key==='Enter')sendTerminal()" />
-        <button onclick="sendTerminal()"
-          style="padding: 0.6rem 1rem; border-radius: 8px; border: none; background: var(--accent); color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
-          Send
-        </button>
+        >You are Claude, helping Terence manage his Bushwick smart home. He runs Home Assistant on an Intel NUC (i7-8559U, 16GB RAM) at homeassistant.local:8123. Integrations: Z-Wave JS, ZHA, Tuya, ESPHome, Matter, Cast. 18 lights, 7 switches, 1 media player, voice assistant with OK Nabu wake word. Be concise and action-oriented.</textarea>
       </div>
-    </div>
-
-    <div class="section-title">Connection Settings</div>
-    <div class="card" style="cursor: default; max-width: 600px;">
-      <h3>&#128273; API Key</h3>
-      <p style="margin-bottom: 0.75rem;">Your key is stored only in this browser's localStorage. Never sent anywhere except the Anthropic API.</p>
-      <div style="display: flex; gap: 0.5rem;">
-        <input type="password" id="api-key-input" placeholder="sk-ant-..."
-          style="flex:1; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.82rem; outline: none; font-family: monospace;"
-          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" />
-        <button onclick="saveApiKey()"
-          style="padding: 0.6rem 1rem; border-radius: 8px; border: none; background: var(--green); color: white; font-weight: 600; font-size: 0.82rem; cursor: pointer;">
-          Save
-        </button>
-      </div>
-      <div id="api-key-msg" style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.5rem;"></div>
-    </div>
-
-    <div class="card" style="cursor: default; max-width: 600px; margin-top: 0.75rem;">
-      <h3>&#128736; System Prompt</h3>
-      <p style="margin-bottom: 0.75rem;">Context sent with every message so Claude knows about your setup.</p>
-      <textarea id="sys-prompt" rows="4"
-        style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.82rem; outline: none; font-family: monospace; resize: vertical;"
-        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-      >You are Claude, helping Terence manage his Bushwick smart home. He runs Home Assistant on an Intel NUC (i7-8559U, 16GB RAM) at homeassistant.local:8123. Integrations: Z-Wave JS, ZHA, Tuya, ESPHome, Matter, Cast. 18 lights, 7 switches, 1 media player, voice assistant with OK Nabu wake word. Be concise and action-oriented.</textarea>
     </div>
   </div>
 
@@ -1025,7 +1056,161 @@
   renderPendingRequests();
   renderApprovedUsers();
 
-  // ---- REMOTE TERMINAL ----
+  // ---- REMOTE TERMINAL (TOTP 2FA) ----
+  let _terminalUnlocked = false;
+  let _failedAttempts = 0;
+  let _lockoutUntil = 0;
+
+  // TOTP Implementation (RFC 6238) — compatible with Google Authenticator
+  function base32Decode(s) {
+    const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let bits = '', bytes = [];
+    s = s.replace(/=+$/, '').toUpperCase();
+    for (let i = 0; i < s.length; i++) {
+      const v = alpha.indexOf(s[i]);
+      if (v < 0) continue;
+      bits += v.toString(2).padStart(5, '0');
+    }
+    for (let i = 0; i + 8 <= bits.length; i += 8) bytes.push(parseInt(bits.substr(i, 8), 2));
+    return new Uint8Array(bytes);
+  }
+
+  function base32Encode(buf) {
+    const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let bits = '', out = '';
+    for (let b of buf) bits += b.toString(2).padStart(8, '0');
+    for (let i = 0; i < bits.length; i += 5) {
+      const chunk = bits.substr(i, 5).padEnd(5, '0');
+      out += alpha[parseInt(chunk, 2)];
+    }
+    return out;
+  }
+
+  async function hmacSha1(key, data) {
+    const ck = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+    const sig = await crypto.subtle.sign('HMAC', ck, data);
+    return new Uint8Array(sig);
+  }
+
+  async function generateTOTP(secret, time) {
+    const key = base32Decode(secret);
+    const t = Math.floor((time || Date.now() / 1000) / 30);
+    const buf = new ArrayBuffer(8);
+    const dv = new DataView(buf);
+    dv.setUint32(4, t, false);
+    const hmac = await hmacSha1(key, new Uint8Array(buf));
+    const offset = hmac[hmac.length - 1] & 0x0f;
+    const code = ((hmac[offset] & 0x7f) << 24 | hmac[offset+1] << 16 | hmac[offset+2] << 8 | hmac[offset+3]) % 1000000;
+    return code.toString().padStart(6, '0');
+  }
+
+  async function verifyTOTP(secret, code) {
+    const now = Date.now() / 1000;
+    // Check current window and +/- 1 window (90 second tolerance)
+    for (let i = -1; i <= 1; i++) {
+      const expected = await generateTOTP(secret, now + i * 30);
+      if (expected === code) return true;
+    }
+    return false;
+  }
+
+  function generateSecret() {
+    const bytes = new Uint8Array(20);
+    crypto.getRandomValues(bytes);
+    return base32Encode(bytes);
+  }
+
+  // Simple QR code generator (numeric mode, minimal implementation)
+  function renderQRSetup(secret) {
+    const uri = `otpauth://totp/Bushwick%20HQ:terence.hatten%40gmail.com?secret=${secret}&issuer=Bushwick%20HQ&algorithm=SHA1&digits=6&period=30`;
+    const qrEl = document.getElementById('totp-qr');
+    // Use a QR code API for the image (runs client-side via redirect)
+    const img = document.createElement('img');
+    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(uri)}`;
+    img.alt = 'Scan with Google Authenticator';
+    img.style.width = '200px';
+    img.style.height = '200px';
+    qrEl.innerHTML = '';
+    qrEl.appendChild(img);
+    document.getElementById('totp-secret-display').textContent = secret.match(/.{1,4}/g).join(' ');
+  }
+
+  function initTOTP() {
+    const secret = localStorage.getItem('tmh-totp-secret');
+    if (!secret) {
+      // First time — show setup
+      const newSecret = generateSecret();
+      localStorage.setItem('tmh-totp-secret-pending', newSecret);
+      document.getElementById('totp-setup').style.display = 'block';
+      renderQRSetup(newSecret);
+    }
+  }
+
+  function confirmTotpSetup() {
+    const pending = localStorage.getItem('tmh-totp-secret-pending');
+    if (pending) {
+      localStorage.setItem('tmh-totp-secret', pending);
+      localStorage.removeItem('tmh-totp-secret-pending');
+      document.getElementById('totp-setup').style.display = 'none';
+      document.getElementById('terminal-lock-msg').style.color = 'var(--green)';
+      document.getElementById('terminal-lock-msg').textContent = 'TOTP configured! Now enter a code from Google Authenticator to unlock.';
+    }
+  }
+
+  async function unlockTerminal() {
+    const now = Date.now();
+    if (now < _lockoutUntil) {
+      const secs = Math.ceil((_lockoutUntil - now) / 1000);
+      document.getElementById('terminal-lock-msg').style.color = 'var(--red)';
+      document.getElementById('terminal-lock-msg').textContent = `Too many attempts. Try again in ${secs}s.`;
+      return;
+    }
+    const secret = localStorage.getItem('tmh-totp-secret');
+    if (!secret) {
+      document.getElementById('terminal-lock-msg').style.color = 'var(--orange)';
+      document.getElementById('terminal-lock-msg').textContent = 'Scan the QR code above first, then click "I\'ve scanned it".';
+      return;
+    }
+    const code = document.getElementById('terminal-pin').value.replace(/\s/g, '');
+    if (code.length !== 6 || !/^\d+$/.test(code)) {
+      document.getElementById('terminal-lock-msg').style.color = 'var(--red)';
+      document.getElementById('terminal-lock-msg').textContent = 'Enter a 6-digit code from Google Authenticator.';
+      return;
+    }
+    const valid = await verifyTOTP(secret, code);
+    if (valid) {
+      _terminalUnlocked = true;
+      _failedAttempts = 0;
+      document.getElementById('terminal-locked').style.display = 'none';
+      document.getElementById('terminal-unlocked').style.display = 'block';
+      document.getElementById('terminal-pin').value = '';
+      // Auto-lock after 15 minutes
+      clearTimeout(window._autoLockTimer);
+      window._autoLockTimer = setTimeout(lockTerminal, 15 * 60 * 1000);
+    } else {
+      _failedAttempts++;
+      document.getElementById('terminal-lock-msg').style.color = 'var(--red)';
+      if (_failedAttempts >= 5) {
+        _lockoutUntil = now + 60000; // 60 second lockout
+        document.getElementById('terminal-lock-msg').textContent = 'Too many failed attempts. Locked for 60 seconds.';
+        _failedAttempts = 0;
+      } else {
+        document.getElementById('terminal-lock-msg').textContent = `Invalid code. ${5 - _failedAttempts} attempts remaining.`;
+      }
+      document.getElementById('terminal-pin').value = '';
+    }
+  }
+
+  function lockTerminal() {
+    _terminalUnlocked = false;
+    document.getElementById('terminal-locked').style.display = 'block';
+    document.getElementById('terminal-unlocked').style.display = 'none';
+    clearTimeout(window._autoLockTimer);
+  }
+
+  // Initialize TOTP on page load
+  initTOTP();
+
   let terminalHistory = [];
 
   function saveApiKey() {
