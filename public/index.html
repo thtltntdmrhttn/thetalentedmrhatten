@@ -608,59 +608,56 @@
 <!-- Main content -->
 <div class="main">
 
-  <!-- DASHBOARD -->
+  <!-- DASHBOARD / WELCOME -->
   <div class="page active" id="page-dashboard">
     <div class="page-header">
-      <h2>Dashboard</h2>
-      <p>System overview &mdash; everything at a glance.</p>
+      <h2 style="font-family:'Playfair Display',Georgia,serif; letter-spacing:0.01em;">Good evening, Terence</h2>
+      <p id="dash-date" style="font-style:italic;"></p>
     </div>
-    <div class="stats">
-      <div class="stat">
-        <div class="label">HA Version</div>
-        <div class="value">2026.3.4</div>
-        <div class="sub">Updated today</div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+      <!-- Weather -->
+      <div class="card" style="cursor:default;">
+        <h3 style="font-family:'Playfair Display',Georgia,serif;">Bushwick Weather</h3>
+        <div id="dash-weather" style="margin-top:0.5rem;">
+          <div style="font-size:2rem; font-weight:700; color:var(--text-bright);" id="dash-temp">--</div>
+          <div style="font-size:0.82rem; color:var(--text-dim);" id="dash-weather-desc">Loading...</div>
+        </div>
       </div>
-      <div class="stat">
-        <div class="label">Integrations</div>
-        <div class="value">29</div>
-        <div class="sub">All loaded</div>
-      </div>
-      <div class="stat">
-        <div class="label">Devices</div>
-        <div class="value">35+</div>
-        <div class="sub">Lights, switches, sensors</div>
-      </div>
-      <div class="stat">
-        <div class="label">Secrets</div>
-        <div class="value">4</div>
-        <div class="sub">1Password vault</div>
-      </div>
-      <div class="stat">
-        <div class="label">Config Repo</div>
-        <div class="value">Synced</div>
-        <div class="sub">Auto-push on session end</div>
-      </div>
-      <div class="stat">
-        <div class="label">Voice Pipeline</div>
-        <div class="value">Orion</div>
-        <div class="sub">Claude Haiku 4.5</div>
+
+      <!-- Quick status -->
+      <div class="card" style="cursor:default;">
+        <h3 style="font-family:'Playfair Display',Georgia,serif;">Home Status</h3>
+        <div style="margin-top:0.5rem; display:flex; flex-direction:column; gap:0.35rem;">
+          <div class="status-item" style="border:none;padding:0.25rem 0;"><div class="dot dot-green"></div><span style="font-size:0.82rem;">Home Assistant</span><span class="val">v2026.3.4</span></div>
+          <div class="status-item" style="border:none;padding:0.25rem 0;"><div class="dot dot-green"></div><span style="font-size:0.82rem;">Voice Pipeline</span><span class="val">Orion</span></div>
+          <div class="status-item" style="border:none;padding:0.25rem 0;"><div class="dot dot-green"></div><span style="font-size:0.82rem;">HACS</span><span class="val">installed</span></div>
+          <div class="status-item" style="border:none;padding:0.25rem 0;"><div class="dot dot-green"></div><span style="font-size:0.82rem;">Config Sync</span><span class="val">active</span></div>
+        </div>
       </div>
     </div>
 
-    <div class="section-title">System Status</div>
-    <div class="status-list">
-      <div class="status-item"><div class="dot dot-green"></div>Home Assistant Core<span class="val">v2026.3.4</span></div>
-      <div class="status-item"><div class="dot dot-green"></div>Z-Wave JS<span class="val">loaded</span></div>
-      <div class="status-item"><div class="dot dot-green"></div>ZHA (Zigbee)<span class="val">loaded</span></div>
-      <div class="status-item"><div class="dot dot-green"></div>Tuya<span class="val">loaded</span></div>
-      <div class="status-item"><div class="dot dot-green"></div>ESPHome<span class="val">loaded</span></div>
-      <div class="status-item"><div class="dot dot-green"></div>Anthropic<span class="val">loaded</span></div>
-      <div class="status-item"><div class="dot dot-green"></div>Voice Pipeline<span class="val">Orion</span></div>
-      <div class="status-item"><div class="dot dot-green"></div>GitHub Repo<span class="val">synced</span></div>
-      <div class="status-item"><div class="dot dot-green"></div>1Password<span class="val">active</span></div>
-      <div class="status-item"><div class="dot dot-green"></div>git-crypt<span class="val">active</span></div>
-      <div class="status-item"><div class="dot dot-orange"></div>Netgear RAX80<span class="val">bug</span></div>
-      <div class="status-item"><div class="dot dot-orange"></div>HACS<span class="val">pending</span></div>
+    <!-- Recent reminders / notes -->
+    <div class="section-title" style="font-family:'Playfair Display',Georgia,serif;">Recent Notes &amp; Reminders</div>
+    <div id="dash-reminders" style="margin-bottom: 1.5rem;"></div>
+
+    <!-- Session updates from Claude -->
+    <div class="section-title" style="font-family:'Playfair Display',Georgia,serif;">Latest Session Update</div>
+    <div class="card" style="cursor:default;">
+      <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:0.35rem;">Session 7 &mdash; March 28, 2026</div>
+      <div style="font-size:0.85rem; color:var(--text); line-height:1.6;">
+        Built Wine Cellar, Finance, and Reminders pages. Set up Cloudflare Access for all domains. Added TOTP 2FA to Remote Terminal. Created butler skill. Installed HACS. Radio automations audited &mdash; both target stairs speaker with mutual exclusivity. Landing page redesigned with Art Nouveau aesthetic.
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="section-title" style="font-family:'Playfair Display',Georgia,serif;">Quick Actions</div>
+    <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+      <button onclick="showPage('wine', document.querySelector('[onclick*=wine]'))" style="padding:0.6rem 1.25rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:0.82rem; cursor:pointer; font-family:'Playfair Display',Georgia,serif;">Wine Cellar</button>
+      <button onclick="showPage('finance', document.querySelector('[onclick*=finance]'))" style="padding:0.6rem 1.25rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:0.82rem; cursor:pointer; font-family:'Playfair Display',Georgia,serif;">Finance</button>
+      <button onclick="showPage('reminders', document.querySelector('[onclick*=reminders]'))" style="padding:0.6rem 1.25rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:0.82rem; cursor:pointer; font-family:'Playfair Display',Georgia,serif;">Reminders</button>
+      <button onclick="showPage('bcc', document.querySelector('[onclick*=bcc]'))" style="padding:0.6rem 1.25rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:0.82rem; cursor:pointer; font-family:'Playfair Display',Georgia,serif;">Smart Home</button>
+      <button onclick="showPage('terminal', document.querySelector('[onclick*=terminal]'))" style="padding:0.6rem 1.25rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:0.82rem; cursor:pointer; font-family:'Playfair Display',Georgia,serif;">Terminal</button>
     </div>
   </div>
 
@@ -2371,6 +2368,50 @@
     if (id === 'finance' && !_marketLoaded) { _marketLoaded = true; fetchMarketData(); fetchFinanceNews(); }
     if (id === 'wine') { renderWineTable(); updateWineStats(); }
   };
+
+  // ---- DASHBOARD ----
+  (function initDashboard() {
+    // Greeting based on time
+    const h = new Date().getHours();
+    const greeting = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+    const titleEl = document.querySelector('#page-dashboard .page-header h2');
+    if (titleEl) titleEl.textContent = greeting + ', Terence';
+    // Date
+    const dateEl = document.getElementById('dash-date');
+    if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    // Recent reminders on dashboard
+    const reminders = getReminders ? getReminders().slice(0, 3) : [];
+    const dashRem = document.getElementById('dash-reminders');
+    if (dashRem) {
+      if (reminders.length) {
+        const typeColors = { reminder: 'var(--accent)', summary: 'var(--blue)', note: 'var(--green)', todo: 'var(--orange)' };
+        dashRem.innerHTML = reminders.map(r => {
+          const d = new Date(r.time);
+          const ts = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          return '<div class="reminder-item' + (r.read ? '' : ' unread') + '" style="cursor:pointer;" onclick="showPage(\'reminders\',document.querySelector(\'[onclick*=reminders]\'))">' +
+            '<div class="reminder-time">' + ts + '</div>' +
+            '<div class="reminder-text">' + esc(r.text).substring(0, 120) + (r.text.length > 120 ? '...' : '') + '</div></div>';
+        }).join('');
+      } else {
+        dashRem.innerHTML = '<div style="padding:1rem;color:var(--text-dim);font-size:0.85rem;font-style:italic;">No reminders yet. Add them from the Reminders page.</div>';
+      }
+    }
+  })();
+
+  // Weather for Bushwick, NY
+  (async function fetchWeather() {
+    try {
+      const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.6944&longitude=-73.9213&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=America/New_York');
+      const data = await resp.json();
+      const temp = Math.round(data.current.temperature_2m);
+      const code = data.current.weather_code;
+      const desc = {0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Foggy',48:'Fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',71:'Light snow',73:'Snow',75:'Heavy snow',80:'Light showers',81:'Showers',82:'Heavy showers',95:'Thunderstorm'}[code] || 'Unknown';
+      document.getElementById('dash-temp').textContent = temp + '\u00B0F';
+      document.getElementById('dash-weather-desc').textContent = desc;
+    } catch(e) {
+      document.getElementById('dash-weather-desc').textContent = 'Weather unavailable';
+    }
+  })();
 
   // Checklist persistence
   function toggleCheck(el) {
