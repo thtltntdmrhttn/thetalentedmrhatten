@@ -5,170 +5,164 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Talented Mr Hatten</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
 <style>
-  /* ---- LANDING PAGE ---- */
+  /* ---- LANDING PAGE — Venice c. 1600 ---- */
   .landing {
     position: fixed; inset: 0; z-index: 1000;
-    background: #09090b;
+    background: #e8e0d0;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     transition: opacity 0.6s, visibility 0.6s;
   }
   .landing.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-  /* Venetian pattern — subtle repeating diamond lattice */
+  /* Aged parchment texture — layered noise */
   .landing::before {
     content: '';
     position: absolute; inset: 0;
-    background-image:
-      linear-gradient(45deg, rgba(191,155,80,0.03) 25%, transparent 25%),
-      linear-gradient(-45deg, rgba(191,155,80,0.03) 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, rgba(191,155,80,0.03) 75%),
-      linear-gradient(-45deg, transparent 75%, rgba(191,155,80,0.03) 75%);
-    background-size: 40px 40px;
-    background-position: 0 0, 0 20px, 20px -20px, -20px 0;
-  }
-
-  /* Thin gold border frame */
-  .landing::after {
-    content: '';
-    position: absolute;
-    inset: 24px;
-    border: 1px solid rgba(191,155,80,0.12);
-    border-radius: 2px;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(180,160,130,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 30%, rgba(160,140,110,0.1) 0%, transparent 40%),
+      radial-gradient(ellipse at 50% 80%, rgba(170,150,120,0.08) 0%, transparent 45%);
     pointer-events: none;
   }
 
   .landing-content {
     position: relative; z-index: 1;
-    text-align: center; max-width: 460px; padding: 2rem;
+    text-align: center; max-width: 480px; padding: 2rem;
   }
 
-  /* Venetian ornament — minimal fleur line */
-  .landing-ornament {
-    color: rgba(191,155,80,0.3);
-    font-size: 1.2rem;
-    letter-spacing: 0.5em;
-    margin-bottom: 2rem;
+  /* Winged Lion of St Mark — small, faded, above the title */
+  .landing-mark {
+    font-size: 0.7rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: #8a7a62;
+    margin-bottom: 1.5rem;
+    opacity: 0.5;
   }
 
   .landing-title {
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 2.4rem;
+    font-size: 2.2rem;
     font-weight: 700;
-    color: #fafafa;
-    letter-spacing: 0.02em;
-    line-height: 1.2;
-    margin-bottom: 0.35rem;
+    color: #2c2418;
+    letter-spacing: 0.04em;
+    line-height: 1.15;
+    margin-bottom: 0.4rem;
   }
 
   .landing-subtitle {
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 400;
     font-style: italic;
-    color: rgba(191,155,80,0.6);
-    letter-spacing: 0.08em;
-    margin-bottom: 2.5rem;
+    color: #7a6b55;
+    letter-spacing: 0.06em;
+    margin-bottom: 2rem;
   }
 
+  /* Thin rule — like an engraved line on old paper */
   .landing-divider {
-    width: 60px; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(191,155,80,0.4), transparent);
-    margin: 0 auto 2.5rem;
+    width: 80px; height: 0;
+    border-top: 1px solid #b8a88a;
+    margin: 0 auto 2rem;
+    opacity: 0.5;
   }
 
-  .landing-buttons { display: flex; flex-direction: column; gap: 0.75rem; align-items: center; }
+  .landing-buttons { display: flex; flex-direction: column; gap: 0.65rem; align-items: center; }
 
   .landing-btn {
-    display: block; width: 280px; padding: 0.85rem 1.5rem;
+    display: block; width: 260px; padding: 0.75rem 1.5rem;
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 1rem; font-weight: 600; letter-spacing: 0.06em;
-    border-radius: 3px; cursor: pointer; transition: all 0.25s;
+    font-size: 0.95rem; font-weight: 600; letter-spacing: 0.1em;
+    border-radius: 2px; cursor: pointer; transition: all 0.3s;
     text-transform: uppercase;
   }
 
   .landing-btn-primary {
-    background: transparent;
-    border: 1px solid rgba(191,155,80,0.5);
-    color: rgba(191,155,80,0.9);
+    background: #3d3024;
+    border: 1px solid #3d3024;
+    color: #e0d6c4;
   }
   .landing-btn-primary:hover {
-    background: rgba(191,155,80,0.08);
-    border-color: rgba(191,155,80,0.8);
-    color: #bf9b50;
+    background: #4a3a2c;
+    border-color: #4a3a2c;
   }
 
   .landing-btn-secondary {
     background: transparent;
-    border: 1px solid rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.4);
-    font-size: 0.85rem;
+    border: 1px solid #b8a88a;
+    color: #6b5d4a;
+    font-size: 0.82rem;
   }
   .landing-btn-secondary:hover {
-    border-color: rgba(255,255,255,0.2);
-    color: rgba(255,255,255,0.6);
+    border-color: #8a7a62;
+    color: #4a3d2e;
+    background: rgba(184,168,138,0.08);
   }
 
   .landing-footer {
-    position: absolute; bottom: 40px; left: 0; right: 0;
+    position: absolute; bottom: 36px; left: 0; right: 0;
     text-align: center;
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 0.75rem;
-    color: rgba(191,155,80,0.2);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
+    font-size: 0.7rem;
+    font-style: italic;
+    color: #a89878;
+    letter-spacing: 0.08em;
+    opacity: 0.4;
   }
 
-  /* Access request modal on landing */
+  /* Access request modal */
   .landing-modal {
     display: none; position: fixed; inset: 0; z-index: 1001;
-    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    background: rgba(44,36,24,0.5); backdrop-filter: blur(3px);
     align-items: center; justify-content: center;
   }
   .landing-modal.show { display: flex; }
   .landing-modal-box {
-    background: #111114; border: 1px solid rgba(191,155,80,0.2);
-    border-radius: 4px; padding: 2.5rem; max-width: 400px; width: 90%;
+    background: #ebe4d6; border: 1px solid #c8b898;
+    border-radius: 2px; padding: 2.5rem; max-width: 400px; width: 90%;
     text-align: center; position: relative;
+    box-shadow: 0 8px 40px rgba(44,36,24,0.15);
   }
   .landing-modal-box h3 {
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 1.3rem; font-weight: 600; color: #fafafa;
+    font-size: 1.3rem; font-weight: 600; color: #2c2418;
     margin-bottom: 0.5rem;
   }
   .landing-modal-box p {
-    font-size: 0.82rem; color: rgba(255,255,255,0.4); margin-bottom: 1.5rem; line-height: 1.5;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 0.88rem; color: #7a6b55; margin-bottom: 1.5rem; line-height: 1.6;
   }
   .landing-modal-box input {
-    width: 100%; padding: 0.7rem 0.75rem; border-radius: 3px;
-    border: 1px solid rgba(191,155,80,0.2); background: #09090b;
-    color: #fafafa; font-size: 0.9rem; outline: none;
+    width: 100%; padding: 0.7rem 0.75rem; border-radius: 2px;
+    border: 1px solid #c8b898; background: #f4efe6;
+    color: #2c2418; font-size: 0.9rem; outline: none;
     font-family: 'Cormorant Garamond', Georgia, serif;
   }
-  .landing-modal-box input:focus { border-color: rgba(191,155,80,0.5); }
-  .landing-modal-box input::placeholder { color: rgba(255,255,255,0.2); }
+  .landing-modal-box input:focus { border-color: #8a7a62; }
+  .landing-modal-box input::placeholder { color: #b8a88a; }
   .landing-modal-submit {
     width: 100%; padding: 0.7rem; margin-top: 0.75rem;
-    border: 1px solid rgba(191,155,80,0.5); background: transparent;
-    color: rgba(191,155,80,0.9); font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 0.9rem; font-weight: 600; letter-spacing: 0.06em;
-    text-transform: uppercase; border-radius: 3px; cursor: pointer;
+    border: 1px solid #3d3024; background: #3d3024;
+    color: #e0d6c4; font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 0.88rem; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; border-radius: 2px; cursor: pointer;
     transition: all 0.25s;
   }
-  .landing-modal-submit:hover { background: rgba(191,155,80,0.08); color: #bf9b50; }
+  .landing-modal-submit:hover { background: #4a3a2c; }
   .landing-modal-close {
-    position: absolute; top: 12px; right: 16px;
-    background: none; border: none; color: rgba(255,255,255,0.3);
+    position: absolute; top: 10px; right: 14px;
+    background: none; border: none; color: #a89878;
     font-size: 1.2rem; cursor: pointer;
   }
-  .landing-modal-close:hover { color: rgba(255,255,255,0.6); }
-  #landing-request-msg { font-size: 0.8rem; margin-top: 0.75rem; min-height: 1.2em; }
+  .landing-modal-close:hover { color: #6b5d4a; }
+  #landing-request-msg { font-size: 0.8rem; margin-top: 0.75rem; min-height: 1.2em; font-family: 'Cormorant Garamond', Georgia, serif; }
 
   @media (max-width: 768px) {
-    .landing-title { font-size: 1.8rem; }
-    .landing::after { inset: 12px; }
-    .landing-btn { width: 240px; }
+    .landing-title { font-size: 1.7rem; }
+    .landing-btn { width: 220px; }
   }
 
   :root {
@@ -448,16 +442,16 @@
 <!-- LANDING PAGE -->
 <div class="landing" id="landing">
   <div class="landing-content">
-    <div class="landing-ornament">&#9830; &middot; &#9830; &middot; &#9830;</div>
+    <div class="landing-mark">Serenissima</div>
     <h1 class="landing-title">The Talented Mr Hatten</h1>
-    <p class="landing-subtitle">Bushwick &middot; New York</p>
+    <p class="landing-subtitle">Bushwick, New York</p>
     <div class="landing-divider"></div>
     <div class="landing-buttons">
       <button class="landing-btn landing-btn-primary" onclick="enterPortal()">Enter</button>
       <button class="landing-btn landing-btn-secondary" onclick="showAccessModal()">Request Access</button>
     </div>
   </div>
-  <div class="landing-footer">Est. MMXXVI</div>
+  <div class="landing-footer">Anno Domini MMXXVI</div>
 </div>
 
 <!-- Access Request Modal -->
@@ -1221,6 +1215,7 @@
       <button class="wine-tab" onclick="showWineTab('add', this)">Add Wine</button>
       <button class="wine-tab" onclick="showWineTab('scan', this)">Scan Label</button>
       <button class="wine-tab" onclick="showWineTab('mwc', this)">MWC Cellar</button>
+      <button class="wine-tab" onclick="showWineTab('sync', this)">Import / Export</button>
     </div>
 
     <!-- Collection Tab -->
@@ -1305,6 +1300,28 @@
         <div id="wine-photo-preview" style="margin-top: 1rem;"></div>
         <div id="wine-scan-msg" style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.75rem;"></div>
         <div id="wine-scan-result" style="display: none; margin-top: 1rem; text-align: left;"></div>
+      </div>
+    </div>
+
+    <!-- Import/Export Tab -->
+    <div id="wine-tab-sync" style="display: none;">
+      <div class="card" style="cursor: default; max-width: 700px;">
+        <h3>&#128229; Export Collection</h3>
+        <p style="margin-bottom: 1rem; font-size: 0.825rem; color: var(--text-dim);">Download your wine collection as CSV. Commit this to the GitHub repo at <code>data/wines.csv</code>.</p>
+        <button onclick="exportWinesCSV()"
+          style="padding: 0.6rem 1.25rem; border-radius: 8px; border: none; background: var(--accent); color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+          Download CSV
+        </button>
+      </div>
+      <div class="card" style="cursor: default; max-width: 700px; margin-top: 0.75rem;">
+        <h3>&#128228; Import CSV</h3>
+        <p style="margin-bottom: 1rem; font-size: 0.825rem; color: var(--text-dim);">Upload a CSV file to add wines. Expected columns: name, producer, type, vintage, region, grape, location, qty, notes.</p>
+        <label for="wine-csv-input"
+          style="display: inline-block; padding: 0.6rem 1.25rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 0.85rem; cursor: pointer;">
+          Choose CSV File
+        </label>
+        <input type="file" id="wine-csv-input" accept=".csv" style="display: none;" onchange="importWinesCSV(this)" />
+        <div id="wine-import-msg" style="font-size: 0.8rem; margin-top: 0.75rem;"></div>
       </div>
     </div>
 
@@ -2037,6 +2054,73 @@
     document.getElementById('wine-scan-msg').textContent = `Added "${wine.name}" to ${wine.location}!`;
     document.getElementById('wine-scan-result').style.display = 'none';
     window._scannedWine = null;
+  }
+
+  function exportWinesCSV() {
+    const wines = getWines();
+    const headers = ['name','producer','type','vintage','region','grape','location','qty','notes','added'];
+    const csvRows = [headers.join(',')];
+    wines.forEach(w => {
+      csvRows.push(headers.map(h => {
+        let v = (w[h] !== undefined && w[h] !== null) ? String(w[h]) : '';
+        if (v.includes(',') || v.includes('"') || v.includes('\n')) v = '"' + v.replace(/"/g, '""') + '"';
+        return v;
+      }).join(','));
+    });
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'wines.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function importWinesCSV(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const msg = document.getElementById('wine-import-msg');
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const lines = e.target.result.split('\n').map(l => l.trim()).filter(l => l);
+      if (lines.length < 2) { msg.style.color = 'var(--red)'; msg.textContent = 'CSV is empty.'; return; }
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^"(.*)"$/, '$1'));
+      const wines = getWines();
+      let added = 0;
+      for (let i = 1; i < lines.length; i++) {
+        const vals = parseCSVLine(lines[i]);
+        const wine = {};
+        headers.forEach((h, idx) => { wine[h] = vals[idx] || ''; });
+        wine.qty = parseInt(wine.qty) || 1;
+        wine.location = wine.location || 'Home';
+        wine.type = wine.type || 'Red';
+        wine.added = wine.added || new Date().toISOString().slice(0, 10);
+        if (wine.name) { wines.push(wine); added++; }
+      }
+      saveWines(wines);
+      renderWineTable();
+      msg.style.color = 'var(--green)';
+      msg.textContent = 'Imported ' + added + ' wines.';
+      input.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  function parseCSVLine(line) {
+    const result = []; let current = ''; let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"' && line[i+1] === '"') { current += '"'; i++; }
+        else if (ch === '"') { inQuotes = false; }
+        else { current += ch; }
+      } else {
+        if (ch === '"') { inQuotes = true; }
+        else if (ch === ',') { result.push(current); current = ''; }
+        else { current += ch; }
+      }
+    }
+    result.push(current);
+    return result;
   }
 
   // Init wine cellar
