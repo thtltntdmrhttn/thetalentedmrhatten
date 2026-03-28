@@ -279,6 +279,13 @@
     <button class="nav-item" onclick="showPage('website', this)">
       <span class="icon">&#127760;</span> Website Build
     </button>
+    <button class="nav-item" onclick="showPage('access', this)">
+      <span class="icon">&#128101;</span> Access Control
+    </button>
+    <button class="nav-item" onclick="showPage('terminal', this)">
+      <span class="icon">&#128421;</span> Remote Terminal
+      <span class="badge badge-green">Live</span>
+    </button>
 
     <div class="section-label">Future</div>
     <button class="nav-item" onclick="showPage('finance', this)">
@@ -788,6 +795,111 @@
     </div>
   </div>
 
+  <!-- ACCESS CONTROL -->
+  <div class="page" id="page-access">
+    <div class="page-header">
+      <h2>Access Control</h2>
+      <p>Manage who can access this portal. Only the admin can approve requests.</p>
+    </div>
+
+    <div class="section-title">Approved Users</div>
+    <div id="approved-users">
+      <div class="status-item" style="margin-bottom: 0.5rem;">
+        <span class="dot dot-green"></span>
+        <span>terence.hatten@gmail.com</span>
+        <span class="val">Admin &middot; Owner</span>
+      </div>
+    </div>
+
+    <div class="section-title">Request Access</div>
+    <div class="card" style="max-width: 600px; cursor: default;">
+      <h3>&#128233; Submit Access Request</h3>
+      <p style="margin-bottom: 1rem;">Enter a Gmail address to request access. The admin will review and approve or deny.</p>
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+        <input type="email" id="access-email" placeholder="yourname@gmail.com"
+          style="flex:1; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.85rem; outline: none;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" />
+        <button onclick="submitAccessRequest()"
+          style="padding: 0.6rem 1.25rem; border-radius: 8px; border: none; background: var(--accent); color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+          Request
+        </button>
+      </div>
+      <div id="access-msg" style="font-size: 0.8rem; color: var(--text-dim);"></div>
+    </div>
+
+    <div class="section-title">Pending Requests (Admin Only)</div>
+    <div id="admin-panel">
+      <div class="card" style="cursor: default; max-width: 600px;">
+        <div id="pending-requests">
+          <p style="font-size: 0.825rem; color: var(--text-dim);">No pending requests.</p>
+        </div>
+      </div>
+      <div style="margin-top: 1rem;">
+        <button onclick="toggleAdminAuth()"
+          style="padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim); font-size: 0.8rem; cursor: pointer;"
+          id="admin-lock-btn">
+          &#128274; Unlock Admin Panel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REMOTE TERMINAL -->
+  <div class="page" id="page-terminal">
+    <div class="page-header">
+      <h2>Remote Terminal</h2>
+      <p>Chat with Claude from anywhere. Issue commands to your home system remotely.</p>
+    </div>
+
+    <div class="card" style="cursor: default; max-width: 800px; padding: 0; overflow: hidden;">
+      <div style="padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;">
+        <span class="dot dot-green"></span>
+        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-bright);">Claude &middot; Bushwick HQ</span>
+        <span style="margin-left: auto; font-size: 0.7rem; color: var(--text-dim);" id="terminal-status">Disconnected</span>
+      </div>
+      <div id="terminal-output" style="height: 400px; overflow-y: auto; padding: 1rem 1.25rem; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.82rem; line-height: 1.6; background: var(--bg);">
+        <div style="color: var(--text-dim);">Welcome to Bushwick Command Center remote terminal.</div>
+        <div style="color: var(--text-dim);">Enter your Anthropic API key below to connect, then type commands.</div>
+        <div style="color: var(--text-dim); margin-top: 0.5rem;">Tip: Ask Claude to check Home Assistant, run system commands, or manage your smart home.</div>
+      </div>
+      <div style="border-top: 1px solid var(--border); padding: 0.5rem; display: flex; gap: 0.5rem;">
+        <input type="text" id="terminal-input" placeholder="Type a message..."
+          style="flex:1; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.82rem; outline: none;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+          onkeydown="if(event.key==='Enter')sendTerminal()" />
+        <button onclick="sendTerminal()"
+          style="padding: 0.6rem 1rem; border-radius: 8px; border: none; background: var(--accent); color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+          Send
+        </button>
+      </div>
+    </div>
+
+    <div class="section-title">Connection Settings</div>
+    <div class="card" style="cursor: default; max-width: 600px;">
+      <h3>&#128273; API Key</h3>
+      <p style="margin-bottom: 0.75rem;">Your key is stored only in this browser's localStorage. Never sent anywhere except the Anthropic API.</p>
+      <div style="display: flex; gap: 0.5rem;">
+        <input type="password" id="api-key-input" placeholder="sk-ant-..."
+          style="flex:1; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.82rem; outline: none; font-family: monospace;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" />
+        <button onclick="saveApiKey()"
+          style="padding: 0.6rem 1rem; border-radius: 8px; border: none; background: var(--green); color: white; font-weight: 600; font-size: 0.82rem; cursor: pointer;">
+          Save
+        </button>
+      </div>
+      <div id="api-key-msg" style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.5rem;"></div>
+    </div>
+
+    <div class="card" style="cursor: default; max-width: 600px; margin-top: 0.75rem;">
+      <h3>&#128736; System Prompt</h3>
+      <p style="margin-bottom: 0.75rem;">Context sent with every message so Claude knows about your setup.</p>
+      <textarea id="sys-prompt" rows="4"
+        style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.82rem; outline: none; font-family: monospace; resize: vertical;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+      >You are Claude, helping Terence manage his Bushwick smart home. He runs Home Assistant on an Intel NUC (i7-8559U, 16GB RAM) at homeassistant.local:8123. Integrations: Z-Wave JS, ZHA, Tuya, ESPHome, Matter, Cast. 18 lights, 7 switches, 1 media player, voice assistant with OK Nabu wake word. Be concise and action-oriented.</textarea>
+    </div>
+  </div>
+
   <!-- FINANCE TOOLS (coming soon) -->
   <div class="page" id="page-finance">
     <div class="coming-soon">
@@ -822,6 +934,190 @@
     document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('overlay').classList.toggle('show');
   }
+
+  // ---- ACCESS CONTROL ----
+  function submitAccessRequest() {
+    const email = document.getElementById('access-email').value.trim();
+    const msg = document.getElementById('access-msg');
+    if (!email || !email.includes('@gmail.com')) {
+      msg.style.color = 'var(--red)';
+      msg.textContent = 'Please enter a valid Gmail address.';
+      return;
+    }
+    const requests = JSON.parse(localStorage.getItem('tmh-access-requests') || '[]');
+    if (requests.find(r => r.email === email)) {
+      msg.style.color = 'var(--orange)';
+      msg.textContent = 'This email already has a pending request.';
+      return;
+    }
+    const approved = JSON.parse(localStorage.getItem('tmh-approved-users') || '[]');
+    if (approved.find(a => a === email) || email === 'terence.hatten@gmail.com') {
+      msg.style.color = 'var(--green)';
+      msg.textContent = 'This email is already approved!';
+      return;
+    }
+    requests.push({ email, date: new Date().toISOString().slice(0,10), status: 'pending' });
+    localStorage.setItem('tmh-access-requests', JSON.stringify(requests));
+    msg.style.color = 'var(--green)';
+    msg.textContent = 'Request submitted! The admin will review it.';
+    document.getElementById('access-email').value = '';
+    renderPendingRequests();
+  }
+
+  function renderPendingRequests() {
+    const el = document.getElementById('pending-requests');
+    const requests = JSON.parse(localStorage.getItem('tmh-access-requests') || '[]').filter(r => r.status === 'pending');
+    if (!requests.length) { el.innerHTML = '<p style="font-size:0.825rem;color:var(--text-dim);">No pending requests.</p>'; return; }
+    el.innerHTML = requests.map((r, i) => `
+      <div style="display:flex;align-items:center;gap:10px;padding:0.5rem 0;border-bottom:1px solid var(--border);">
+        <span class="dot dot-orange"></span>
+        <span style="font-size:0.85rem;color:var(--text);">${r.email}</span>
+        <span style="font-size:0.7rem;color:var(--text-dim);margin-left:auto;">${r.date}</span>
+        <button onclick="approveRequest(${i})" class="admin-only" style="padding:3px 10px;border-radius:6px;border:none;background:var(--green);color:white;font-size:0.75rem;cursor:pointer;display:none;">Approve</button>
+        <button onclick="denyRequest(${i})" class="admin-only" style="padding:3px 10px;border-radius:6px;border:none;background:var(--red);color:white;font-size:0.75rem;cursor:pointer;display:none;">Deny</button>
+      </div>
+    `).join('');
+    if (window._adminUnlocked) document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'inline-block');
+  }
+
+  function approveRequest(idx) {
+    const requests = JSON.parse(localStorage.getItem('tmh-access-requests') || '[]');
+    const pending = requests.filter(r => r.status === 'pending');
+    const approved = JSON.parse(localStorage.getItem('tmh-approved-users') || '[]');
+    approved.push(pending[idx].email);
+    localStorage.setItem('tmh-approved-users', JSON.stringify(approved));
+    pending[idx].status = 'approved';
+    localStorage.setItem('tmh-access-requests', JSON.stringify(requests));
+    renderPendingRequests();
+    renderApprovedUsers();
+  }
+
+  function denyRequest(idx) {
+    const requests = JSON.parse(localStorage.getItem('tmh-access-requests') || '[]');
+    const pending = requests.filter(r => r.status === 'pending');
+    pending[idx].status = 'denied';
+    localStorage.setItem('tmh-access-requests', JSON.stringify(requests));
+    renderPendingRequests();
+  }
+
+  function renderApprovedUsers() {
+    const el = document.getElementById('approved-users');
+    const approved = JSON.parse(localStorage.getItem('tmh-approved-users') || '[]');
+    let html = `<div class="status-item" style="margin-bottom:0.5rem;"><span class="dot dot-green"></span><span>terence.hatten@gmail.com</span><span class="val">Admin &middot; Owner</span></div>`;
+    approved.forEach(email => {
+      html += `<div class="status-item" style="margin-bottom:0.5rem;"><span class="dot dot-green"></span><span>${email}</span><span class="val">Approved</span></div>`;
+    });
+    el.innerHTML = html;
+  }
+
+  function toggleAdminAuth() {
+    const pin = prompt('Enter admin PIN:');
+    if (pin === '2026') {
+      window._adminUnlocked = true;
+      document.getElementById('admin-lock-btn').innerHTML = '&#128275; Admin Unlocked';
+      document.getElementById('admin-lock-btn').style.borderColor = 'var(--green)';
+      document.getElementById('admin-lock-btn').style.color = 'var(--green)';
+      document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'inline-block');
+    } else if (pin !== null) {
+      alert('Incorrect PIN.');
+    }
+  }
+  renderPendingRequests();
+  renderApprovedUsers();
+
+  // ---- REMOTE TERMINAL ----
+  let terminalHistory = [];
+
+  function saveApiKey() {
+    const key = document.getElementById('api-key-input').value.trim();
+    const msg = document.getElementById('api-key-msg');
+    if (!key.startsWith('sk-ant-')) { msg.style.color = 'var(--red)'; msg.textContent = 'Key should start with sk-ant-'; return; }
+    localStorage.setItem('tmh-api-key', key);
+    document.getElementById('api-key-input').value = '';
+    msg.style.color = 'var(--green)';
+    msg.textContent = 'API key saved to browser storage.';
+    document.getElementById('terminal-status').textContent = 'Connected';
+    document.getElementById('terminal-status').style.color = 'var(--green)';
+  }
+
+  function appendTerminal(role, text) {
+    const out = document.getElementById('terminal-output');
+    const div = document.createElement('div');
+    div.style.marginTop = '0.75rem';
+    if (role === 'user') {
+      div.innerHTML = '<span style="color:var(--accent-text);font-weight:600;">you &gt;</span> ' + escapeHtml(text);
+    } else if (role === 'assistant') {
+      div.innerHTML = '<span style="color:var(--green);font-weight:600;">claude &gt;</span> ' + formatTerminalResponse(text);
+    } else {
+      div.style.color = 'var(--red)';
+      div.textContent = text;
+    }
+    out.appendChild(div);
+    out.scrollTop = out.scrollHeight;
+  }
+
+  function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function formatTerminalResponse(text) {
+    return escapeHtml(text).replace(/`([^`]+)`/g, '<code style="background:var(--surface3);padding:1px 4px;border-radius:3px;color:var(--accent-text);">$1</code>').replace(/\n/g, '<br>');
+  }
+
+  async function sendTerminal() {
+    const input = document.getElementById('terminal-input');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    const apiKey = localStorage.getItem('tmh-api-key');
+    if (!apiKey) { appendTerminal('error', 'No API key set. Go to Connection Settings below.'); return; }
+
+    appendTerminal('user', text);
+    terminalHistory.push({ role: 'user', content: text });
+
+    const sysPrompt = document.getElementById('sys-prompt').value;
+    const statusEl = document.getElementById('terminal-status');
+    statusEl.textContent = 'Thinking...';
+    statusEl.style.color = 'var(--orange)';
+
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1024,
+          system: sysPrompt,
+          messages: terminalHistory.slice(-20)
+        })
+      });
+      const data = await resp.json();
+      if (data.content && data.content[0]) {
+        const reply = data.content[0].text;
+        terminalHistory.push({ role: 'assistant', content: reply });
+        appendTerminal('assistant', reply);
+      } else {
+        appendTerminal('error', 'API error: ' + JSON.stringify(data.error || data));
+      }
+    } catch (e) {
+      appendTerminal('error', 'Network error: ' + e.message);
+    }
+    statusEl.textContent = 'Connected';
+    statusEl.style.color = 'var(--green)';
+  }
+
+  // Load saved API key state on init
+  (function initTerminal() {
+    const key = localStorage.getItem('tmh-api-key');
+    if (key) {
+      document.getElementById('terminal-status').textContent = 'Connected';
+      document.getElementById('terminal-status').style.color = 'var(--green)';
+    }
+  })();
 
   // Checklist persistence
   function toggleCheck(el) {
