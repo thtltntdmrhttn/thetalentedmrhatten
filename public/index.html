@@ -4,7 +4,173 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Talented Mr Hatten</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
+  /* ---- LANDING PAGE ---- */
+  .landing {
+    position: fixed; inset: 0; z-index: 1000;
+    background: #09090b;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: opacity 0.6s, visibility 0.6s;
+  }
+  .landing.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+  /* Venetian pattern — subtle repeating diamond lattice */
+  .landing::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(45deg, rgba(191,155,80,0.03) 25%, transparent 25%),
+      linear-gradient(-45deg, rgba(191,155,80,0.03) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, rgba(191,155,80,0.03) 75%),
+      linear-gradient(-45deg, transparent 75%, rgba(191,155,80,0.03) 75%);
+    background-size: 40px 40px;
+    background-position: 0 0, 0 20px, 20px -20px, -20px 0;
+  }
+
+  /* Thin gold border frame */
+  .landing::after {
+    content: '';
+    position: absolute;
+    inset: 24px;
+    border: 1px solid rgba(191,155,80,0.12);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  .landing-content {
+    position: relative; z-index: 1;
+    text-align: center; max-width: 460px; padding: 2rem;
+  }
+
+  /* Venetian ornament — minimal fleur line */
+  .landing-ornament {
+    color: rgba(191,155,80,0.3);
+    font-size: 1.2rem;
+    letter-spacing: 0.5em;
+    margin-bottom: 2rem;
+  }
+
+  .landing-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: #fafafa;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    margin-bottom: 0.35rem;
+  }
+
+  .landing-subtitle {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1rem;
+    font-weight: 400;
+    font-style: italic;
+    color: rgba(191,155,80,0.6);
+    letter-spacing: 0.08em;
+    margin-bottom: 2.5rem;
+  }
+
+  .landing-divider {
+    width: 60px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(191,155,80,0.4), transparent);
+    margin: 0 auto 2.5rem;
+  }
+
+  .landing-buttons { display: flex; flex-direction: column; gap: 0.75rem; align-items: center; }
+
+  .landing-btn {
+    display: block; width: 280px; padding: 0.85rem 1.5rem;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1rem; font-weight: 600; letter-spacing: 0.06em;
+    border-radius: 3px; cursor: pointer; transition: all 0.25s;
+    text-transform: uppercase;
+  }
+
+  .landing-btn-primary {
+    background: transparent;
+    border: 1px solid rgba(191,155,80,0.5);
+    color: rgba(191,155,80,0.9);
+  }
+  .landing-btn-primary:hover {
+    background: rgba(191,155,80,0.08);
+    border-color: rgba(191,155,80,0.8);
+    color: #bf9b50;
+  }
+
+  .landing-btn-secondary {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.4);
+    font-size: 0.85rem;
+  }
+  .landing-btn-secondary:hover {
+    border-color: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6);
+  }
+
+  .landing-footer {
+    position: absolute; bottom: 40px; left: 0; right: 0;
+    text-align: center;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 0.75rem;
+    color: rgba(191,155,80,0.2);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* Access request modal on landing */
+  .landing-modal {
+    display: none; position: fixed; inset: 0; z-index: 1001;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+  }
+  .landing-modal.show { display: flex; }
+  .landing-modal-box {
+    background: #111114; border: 1px solid rgba(191,155,80,0.2);
+    border-radius: 4px; padding: 2.5rem; max-width: 400px; width: 90%;
+    text-align: center; position: relative;
+  }
+  .landing-modal-box h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.3rem; font-weight: 600; color: #fafafa;
+    margin-bottom: 0.5rem;
+  }
+  .landing-modal-box p {
+    font-size: 0.82rem; color: rgba(255,255,255,0.4); margin-bottom: 1.5rem; line-height: 1.5;
+  }
+  .landing-modal-box input {
+    width: 100%; padding: 0.7rem 0.75rem; border-radius: 3px;
+    border: 1px solid rgba(191,155,80,0.2); background: #09090b;
+    color: #fafafa; font-size: 0.9rem; outline: none;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+  }
+  .landing-modal-box input:focus { border-color: rgba(191,155,80,0.5); }
+  .landing-modal-box input::placeholder { color: rgba(255,255,255,0.2); }
+  .landing-modal-submit {
+    width: 100%; padding: 0.7rem; margin-top: 0.75rem;
+    border: 1px solid rgba(191,155,80,0.5); background: transparent;
+    color: rgba(191,155,80,0.9); font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 0.9rem; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; border-radius: 3px; cursor: pointer;
+    transition: all 0.25s;
+  }
+  .landing-modal-submit:hover { background: rgba(191,155,80,0.08); color: #bf9b50; }
+  .landing-modal-close {
+    position: absolute; top: 12px; right: 16px;
+    background: none; border: none; color: rgba(255,255,255,0.3);
+    font-size: 1.2rem; cursor: pointer;
+  }
+  .landing-modal-close:hover { color: rgba(255,255,255,0.6); }
+  #landing-request-msg { font-size: 0.8rem; margin-top: 0.75rem; min-height: 1.2em; }
+
+  @media (max-width: 768px) {
+    .landing-title { font-size: 1.8rem; }
+    .landing::after { inset: 12px; }
+    .landing-btn { width: 240px; }
+  }
+
   :root {
     --bg: #09090b;
     --surface: #111114;
@@ -278,6 +444,34 @@
 </style>
 </head>
 <body>
+
+<!-- LANDING PAGE -->
+<div class="landing" id="landing">
+  <div class="landing-content">
+    <div class="landing-ornament">&#9830; &middot; &#9830; &middot; &#9830;</div>
+    <h1 class="landing-title">The Talented Mr Hatten</h1>
+    <p class="landing-subtitle">Bushwick &middot; New York</p>
+    <div class="landing-divider"></div>
+    <div class="landing-buttons">
+      <button class="landing-btn landing-btn-primary" onclick="enterPortal()">Enter</button>
+      <button class="landing-btn landing-btn-secondary" onclick="showAccessModal()">Request Access</button>
+    </div>
+  </div>
+  <div class="landing-footer">Est. MMXXVI</div>
+</div>
+
+<!-- Access Request Modal -->
+<div class="landing-modal" id="landing-modal">
+  <div class="landing-modal-box">
+    <button class="landing-modal-close" onclick="hideAccessModal()">&times;</button>
+    <h3>Request Access</h3>
+    <p>Enter your email address below. The administrator will review your request and grant access if approved.</p>
+    <input type="email" id="landing-email" placeholder="your.email@gmail.com"
+      onkeydown="if(event.key==='Enter')submitLandingRequest()" />
+    <button class="landing-modal-submit" onclick="submitLandingRequest()">Submit Request</button>
+    <div id="landing-request-msg"></div>
+  </div>
+</div>
 
 <!-- Mobile header -->
 <div class="mobile-header">
@@ -1264,21 +1458,72 @@
     const email = getCfEmail();
     window._visitorEmail = email;
     if (email && !isApprovedUser(email)) {
-      // Hide everything except the access page
+      // Unapproved user — keep landing visible, hide portal
       document.querySelectorAll('.nav-item').forEach(n => n.style.display = 'none');
       document.querySelectorAll('.section-label').forEach(l => l.style.display = 'none');
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('page-access').classList.add('active');
-      // Auto-fill their email in the request form
       const emailInput = document.getElementById('access-email');
       if (emailInput) emailInput.value = email;
-      // Show a message
       const header = document.querySelector('#page-access .page-header p');
       if (header) header.textContent = 'Your email (' + email + ') is not yet approved. Submit a request below and the admin will review it.';
-      // Hide admin panel for non-admins
       document.getElementById('admin-panel').style.display = 'none';
     }
   })();
+
+  // ---- LANDING PAGE ----
+  function enterPortal() {
+    document.getElementById('landing').classList.add('hidden');
+  }
+
+  function showAccessModal() {
+    document.getElementById('landing-modal').classList.add('show');
+    document.getElementById('landing-email').focus();
+  }
+
+  function hideAccessModal() {
+    document.getElementById('landing-modal').classList.remove('show');
+    document.getElementById('landing-request-msg').textContent = '';
+  }
+
+  function submitLandingRequest() {
+    const email = document.getElementById('landing-email').value.trim();
+    const msg = document.getElementById('landing-request-msg');
+    if (!email || !email.includes('@')) {
+      msg.style.color = '#ef4444';
+      msg.textContent = 'Please enter a valid email address.';
+      return;
+    }
+    const requests = JSON.parse(localStorage.getItem('tmh-access-requests') || '[]');
+    if (requests.find(r => r.email === email && r.status === 'pending')) {
+      msg.style.color = 'rgba(191,155,80,0.8)';
+      msg.textContent = 'A request for this email is already pending.';
+      return;
+    }
+    const approved = JSON.parse(localStorage.getItem('tmh-approved-users') || '[]');
+    if (APPROVED_EMAILS.includes(email) || approved.includes(email)) {
+      msg.style.color = 'rgba(191,155,80,0.8)';
+      msg.textContent = 'This email is already approved. Click Enter to proceed.';
+      return;
+    }
+    requests.push({ email, date: new Date().toISOString().slice(0,10), status: 'pending' });
+    localStorage.setItem('tmh-access-requests', JSON.stringify(requests));
+    msg.style.color = '#22c55e';
+    msg.textContent = 'Request submitted! The administrator will review it shortly.';
+    document.getElementById('landing-email').value = '';
+    // Also update the inner access control page
+    if (typeof renderPendingRequests === 'function') renderPendingRequests();
+  }
+
+  // Auto-dismiss landing if user has previously entered (session memory)
+  if (sessionStorage.getItem('tmh-entered')) {
+    document.getElementById('landing').classList.add('hidden');
+  }
+  const _origEnter = enterPortal;
+  enterPortal = function() {
+    sessionStorage.setItem('tmh-entered', '1');
+    _origEnter();
+  };
 
   function showPage(id, btn) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
