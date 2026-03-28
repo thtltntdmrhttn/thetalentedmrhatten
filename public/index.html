@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Talented Mr Hatten</title>
+<style>
+  :root {
+    --bg: #09090b;
+    --surface: #111114;
+    --surface2: #18181b;
+    --surface3: #1e1e22;
+    --border: #27272a;
+    --border-hover: #3f3f46;
+    --accent: #8b5cf6;
+    --accent-dim: rgba(139,92,246,0.12);
+    --accent-text: #a78bfa;
+    --green: #22c55e;
+    --green-dim: rgba(34,197,94,0.12);
+    --orange: #f59e0b;
+    --orange-dim: rgba(245,158,11,0.12);
+    --red: #ef4444;
+    --red-dim: rgba(239,68,68,0.12);
+    --blue: #3b82f6;
+    --blue-dim: rgba(59,130,246,0.12);
+    --text: #d4d4d8;
+    --text-dim: #71717a;
+    --text-bright: #fafafa;
+    --sidebar-w: 260px;
+    --header-h: 56px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* ---- SIDEBAR ---- */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: var(--sidebar-w); background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    z-index: 50; transition: transform 0.3s;
+  }
+  .sidebar-header {
+    padding: 1.25rem 1.25rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-header h1 {
+    font-size: 1rem; font-weight: 700; color: var(--text-bright);
+    letter-spacing: -0.3px;
+  }
+  .sidebar-header p { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
+  .sidebar-nav { flex: 1; overflow-y: auto; padding: 0.75rem; }
+  .sidebar-nav .section-label {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-dim); padding: 0.75rem 0.75rem 0.35rem; font-weight: 600;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0.6rem 0.75rem; border-radius: 8px;
+    color: var(--text-dim); font-size: 0.875rem; cursor: pointer;
+    transition: all 0.15s; text-decoration: none; border: none;
+    background: none; width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--accent-dim); color: var(--accent-text); }
+  .nav-item .icon { font-size: 1.1rem; width: 22px; text-align: center; }
+  .nav-item .badge {
+    margin-left: auto; font-size: 0.65rem; padding: 1px 6px;
+    border-radius: 10px; font-weight: 600;
+  }
+  .badge-green { background: var(--green-dim); color: var(--green); }
+  .badge-orange { background: var(--orange-dim); color: var(--orange); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); }
+  .sidebar-footer {
+    padding: 1rem 1.25rem; border-top: 1px solid var(--border);
+    font-size: 0.75rem; color: var(--text-dim);
+  }
+
+  /* ---- MOBILE TOGGLE ---- */
+  .mobile-header {
+    display: none; position: fixed; top: 0; left: 0; right: 0;
+    height: var(--header-h); background: var(--surface);
+    border-bottom: 1px solid var(--border); z-index: 60;
+    padding: 0 1rem; align-items: center;
+  }
+  .hamburger {
+    background: none; border: none; color: var(--text); font-size: 1.4rem;
+    cursor: pointer; padding: 4px 8px; border-radius: 6px;
+  }
+  .hamburger:hover { background: var(--surface2); }
+  .mobile-header h1 { font-size: 0.9rem; color: var(--text-bright); margin-left: 12px; font-weight: 600; }
+  .overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 45;
+  }
+
+  /* ---- MAIN ---- */
+  .main { margin-left: var(--sidebar-w); min-height: 100vh; }
+  .page { display: none; padding: 2rem; max-width: 1100px; }
+  .page.active { display: block; }
+  .page-header { margin-bottom: 2rem; }
+  .page-header h2 {
+    font-size: 1.75rem; font-weight: 700; color: var(--text-bright);
+    letter-spacing: -0.5px;
+  }
+  .page-header p { color: var(--text-dim); margin-top: 0.35rem; }
+
+  /* ---- STAT CARDS ---- */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 2rem; }
+  .stat {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.25rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.35rem; }
+  .stat .value { font-size: 1.5rem; font-weight: 700; color: var(--text-bright); }
+  .stat .sub { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem; }
+
+  /* ---- CARDS ---- */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.25rem; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .card:hover { border-color: var(--border-hover); }
+  .card h3 { font-size: 0.95rem; color: var(--text-bright); margin-bottom: 0.35rem; display: flex; align-items: center; gap: 8px; }
+  .card p { font-size: 0.825rem; color: var(--text-dim); line-height: 1.5; }
+  .card .detail { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+  .card.open .detail { max-height: 600px; margin-top: 0.75rem; }
+  .card .detail ul { padding-left: 1.2rem; }
+  .card .detail li { font-size: 0.825rem; color: var(--text-dim); margin-bottom: 3px; }
+  .card .detail code { background: var(--surface3); padding: 1px 5px; border-radius: 3px; font-size: 0.78rem; color: var(--accent-text); }
+  .card .click-hint { font-size: 0.65rem; color: var(--text-dim); opacity: 0.5; margin-top: 0.5rem; }
+
+  /* ---- STATUS LIST ---- */
+  .status-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; }
+  .status-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.65rem 1rem; font-size: 0.85rem;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .dot-green { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.4); }
+  .dot-orange { background: var(--orange); box-shadow: 0 0 6px rgba(245,158,11,0.4); }
+  .dot-red { background: var(--red); box-shadow: 0 0 6px rgba(239,68,68,0.4); }
+  .status-item .val { margin-left: auto; font-size: 0.75rem; color: var(--text-dim); }
+
+  /* ---- PIPELINE ---- */
+  .pipeline { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 1.5rem 0; }
+  .pipe-step {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.75rem 1.5rem; text-align: center;
+    min-width: 220px;
+  }
+  .pipe-step h4 { font-size: 0.85rem; color: var(--text-bright); }
+  .pipe-step p { font-size: 0.7rem; color: var(--text-dim); }
+  .pipe-step.highlight { border-color: var(--green); background: rgba(34,197,94,0.04); }
+  .pipe-arrow { color: var(--text-dim); font-size: 0.85rem; padding: 0.25rem 0; }
+
+  /* ---- CHECKLIST ---- */
+  .checklist { list-style: none; }
+  .checklist li {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 1rem; margin-bottom: 0.5rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  }
+  .checklist li:hover { border-color: var(--border-hover); }
+  .checklist li.done { opacity: 0.4; }
+  .check-box {
+    width: 20px; height: 20px; border: 2px solid var(--border-hover);
+    border-radius: 5px; flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; color: transparent; transition: all 0.2s;
+  }
+  .checklist li.done .check-box { background: var(--green); border-color: var(--green); color: white; }
+  .check-content h4 { font-size: 0.9rem; color: var(--text-bright); }
+  .check-content p { font-size: 0.8rem; color: var(--text-dim); margin-top: 2px; }
+  .priority-tag { display: inline-block; font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; margin-top: 6px; font-weight: 600; }
+  .p-high { background: var(--red-dim); color: var(--red); }
+  .p-med { background: var(--orange-dim); color: var(--orange); }
+  .p-low { background: var(--green-dim); color: var(--green); }
+
+  /* ---- GLOSSARY ---- */
+  .glossary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem; }
+  .gloss-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+  .gloss-item dt { font-weight: 600; color: var(--accent-text); font-size: 0.9rem; margin-bottom: 0.25rem; }
+  .gloss-item dd { font-size: 0.825rem; color: var(--text-dim); }
+
+  /* ---- COMING SOON ---- */
+  .coming-soon {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 50vh; text-align: center;
+  }
+  .coming-soon .icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
+  .coming-soon h3 { color: var(--text-bright); margin-bottom: 0.5rem; }
+  .coming-soon p { color: var(--text-dim); font-size: 0.9rem; max-width: 400px; }
+
+  /* ---- SECTION TITLE IN PAGE ---- */
+  .section-title {
+    font-size: 1.1rem; font-weight: 600; color: var(--text-bright);
+    margin: 2rem 0 1rem; padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ---- INFO BOX ---- */
+  .info-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.25rem; margin: 1rem 0;
+  }
+  .info-box h4 { font-size: 0.9rem; color: var(--text-bright); margin-bottom: 0.5rem; }
+  .info-box p { font-size: 0.825rem; color: var(--text-dim); line-height: 1.6; }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .overlay.show { display: block; }
+    .mobile-header { display: flex; }
+    .main { margin-left: 0; padding-top: var(--header-h); }
+    .page { padding: 1.25rem; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .card-grid { grid-template-columns: 1fr; }
+    .page-header h2 { font-size: 1.35rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Mobile header -->
+<div class="mobile-header">
+  <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+  <h1>The Talented Mr Hatten</h1>
+</div>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h1>The Talented Mr Hatten</h1>
+    <p>Personal Command Center</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="section-label">Home</div>
+    <button class="nav-item active" onclick="showPage('dashboard', this)">
+      <span class="icon">&#9673;</span> Dashboard
+    </button>
+
+    <div class="section-label">Smart Home</div>
+    <button class="nav-item" onclick="showPage('bcc', this)">
+      <span class="icon">&#127968;</span> Command Center
+      <span class="badge badge-green">Live</span>
+    </button>
+    <button class="nav-item" onclick="showPage('voice', this)">
+      <span class="icon">&#127908;</span> Voice Assistant
+    </button>
+    <button class="nav-item" onclick="showPage('devices', this)">
+      <span class="icon">&#128161;</span> Devices
+    </button>
+
+    <div class="section-label">Infrastructure</div>
+    <button class="nav-item" onclick="showPage('security', this)">
+      <span class="icon">&#128274;</span> Security & Secrets
+    </button>
+    <button class="nav-item" onclick="showPage('architecture', this)">
+      <span class="icon">&#128421;</span> Architecture
+    </button>
+
+    <div class="section-label">Planning</div>
+    <button class="nav-item" onclick="showPage('roadmap', this)">
+      <span class="icon">&#128204;</span> Roadmap
+      <span class="badge badge-orange">10</span>
+    </button>
+    <button class="nav-item" onclick="showPage('glossary', this)">
+      <span class="icon">&#128214;</span> Glossary
+    </button>
+
+    <div class="section-label">Future</div>
+    <button class="nav-item" onclick="showPage('finance', this)">
+      <span class="icon">&#128200;</span> Finance Tools
+      <span class="badge badge-blue">Soon</span>
+    </button>
+    <button class="nav-item" onclick="showPage('integrations', this)">
+      <span class="icon">&#128268;</span> Integrations
+      <span class="badge badge-blue">Soon</span>
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    v1.0 &mdash; Last sync: March 28, 2026
+  </div>
+</aside>
+
+<!-- Main content -->
+<div class="main">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <h2>Dashboard</h2>
+      <p>System overview &mdash; everything at a glance.</p>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="label">HA Version</div>
+        <div class="value">2026.3.4</div>
+        <div class="sub">Updated today</div>
+      </div>
+      <div class="stat">
+        <div class="label">Integrations</div>
+        <div class="value">29</div>
+        <div class="sub">All loaded</div>
+      </div>
+      <div class="stat">
+        <div class="label">Devices</div>
+        <div class="value">35+</div>
+        <div class="sub">Lights, switches, sensors</div>
+      </div>
+      <div class="stat">
+        <div class="label">Secrets</div>
+        <div class="value">4</div>
+        <div class="sub">1Password vault</div>
+      </div>
+      <div class="stat">
+        <div class="label">Config Repo</div>
+        <div class="value">Synced</div>
+        <div class="sub">Auto-push on session end</div>
+      </div>
+      <div class="stat">
+        <div class="label">Voice Pipeline</div>
+        <div class="value">Orion</div>
+        <div class="sub">Claude Haiku 4.5</div>
+      </div>
+    </div>
+
+    <div class="section-title">System Status</div>
+    <div class="status-list">
+      <div class="status-item"><div class="dot dot-green"></div>Home Assistant Core<span class="val">v2026.3.4</span></div>
+      <div class="status-item"><div class="dot dot-green"></div>Z-Wave JS<span class="val">loaded</span></div>
+      <div class="status-item"><div class="dot dot-green"></div>ZHA (Zigbee)<span class="val">loaded</span></div>
+      <div class="status-item"><div class="dot dot-green"></div>Tuya<span class="val">loaded</span></div>
+      <div class="status-item"><div class="dot dot-green"></div>ESPHome<span class="val">loaded</span></div>
+      <div class="status-item"><div class="dot dot-green"></div>Anthropic<span class="val">loaded</span></div>
+      <div class="status-item"><div class="dot dot-green"></div>Voice Pipeline<span class="val">Orion</span></div>
+      <div class="status-item"><div class="dot dot-green"></div>GitHub Repo<span class="val">synced</span></div>
+      <div class="status-item"><div class="dot dot-green"></div>1Password<span class="val">active</span></div>
+      <div class="status-item"><div class="dot dot-green"></div>git-crypt<span class="val">active</span></div>
+      <div class="status-item"><div class="dot dot-orange"></div>Netgear RAX80<span class="val">bug</span></div>
+      <div class="status-item"><div class="dot dot-orange"></div>HACS<span class="val">pending</span></div>
+    </div>
+  </div>
+
+  <!-- COMMAND CENTER -->
+  <div class="page" id="page-bcc">
+    <div class="page-header">
+      <h2>Bushwick Command Center</h2>
+      <p>Smart home control &mdash; lights, media, doorbell, power, environment.</p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#128161; Lighting &mdash; 18 lights</h3>
+        <p>Tuya, OSRAM Zigbee, and ESPHome across every room with scenes and dimming.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Kitchen:</strong> 2 Tuya ceiling lights</li>
+            <li><strong>Lounge:</strong> 2 Tuya + Cosmic (RGB)</li>
+            <li><strong>Office:</strong> Tuya + OSRAM + Globe</li>
+            <li><strong>Bedroom:</strong> Above Bed + Space Lamp + 2 lamps</li>
+            <li><strong>Corridors:</strong> Hallway, Walkway, Bathroom, Attic</li>
+            <li>3 scenes: Daylight, Evening, Nighttime protocols</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#127925; Media</h3>
+        <p>BBC World Service and KissKiss Radio with volume control on dashboard.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>BBC World Service:</strong> toggle on/off, streams to Chromecast</li>
+            <li><strong>KissKiss Radio:</strong> Italian radio via fluidstream</li>
+            <li>Speaker: media_player.stairs (Chromecast)</li>
+            <li>Volume slider on HA dashboard</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#128276; Doorbell &mdash; Aeotec 6</h3>
+        <p>Z-Wave doorbell with 4 configured tones at 30% volume.</p>
+        <div class="detail">
+          <ul>
+            <li>Ding Dong (5s) &mdash; classic doorbell</li>
+            <li>Chimes (7s) &mdash; melodic chime</li>
+            <li>Ship Bell (3s) &mdash; short nautical ring</li>
+            <li>Jingle (3s) &mdash; festive tone</li>
+            <li>30 total tones available, 4 on dashboard</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#9889; Power Grid &mdash; 7 switches</h3>
+        <p>Smart outlets with power monitoring &mdash; kicker, fan, air filter, attic fan.</p>
+        <div class="detail">
+          <ul>
+            <li>Kicker + Fan Outlet: watts + kWh tracking</li>
+            <li>Air Filter, Attic Fan, Samjin Outlet</li>
+            <li>Fan Light + Kicker Light dimmers</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#127777; Environment &mdash; Aranet4</h3>
+        <p>Temperature, humidity, CO2, pressure with 24h trend graphs.</p>
+        <div class="detail">
+          <ul>
+            <li>Temperature: 10-35&deg;C (alerts above 26&deg;C)</li>
+            <li>Humidity: 0-100% (alerts below 30%)</li>
+            <li>CO2: 400-3000 ppm (alerts above 1000)</li>
+            <li>Pressure: 950-1070 hPa</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#128267; Protocols</h3>
+        <p>Z-Wave, Zigbee, Matter, Thread, Wi-Fi, Bluetooth, ESPHome.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Z-Wave:</strong> Doorbell, smart plugs</li>
+            <li><strong>Zigbee (ZHA):</strong> Lights, sensors, buttons</li>
+            <li><strong>Matter/Thread:</strong> Future standard (SkyConnect)</li>
+            <li><strong>Wi-Fi:</strong> Tuya lights, Chromecast</li>
+            <li><strong>Bluetooth:</strong> Aranet4</li>
+            <li><strong>ESPHome:</strong> Onju Voice 2</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VOICE -->
+  <div class="page" id="page-voice">
+    <div class="page-header">
+      <h2>Voice Assistant</h2>
+      <p>Say "OK Nabu" to control the house or ask questions.</p>
+    </div>
+
+    <div class="pipeline">
+      <div class="pipe-step"><h4>&#127908; "OK Nabu"</h4><p>Wake word (openWakeWord on server)</p></div>
+      <div class="pipe-arrow">&#8595;</div>
+      <div class="pipe-step"><h4>&#128488; Whisper STT</h4><p>Speech to text (local on NUC)</p></div>
+      <div class="pipe-arrow">&#8595;</div>
+      <div class="pipe-step highlight"><h4>&#129302; Claude Haiku 4.5</h4><p>Understands intent (Anthropic cloud API)</p></div>
+      <div class="pipe-arrow">&#8595;</div>
+      <div class="pipe-step"><h4>&#128264; Piper TTS</h4><p>Text to speech (local on NUC)</p></div>
+      <div class="pipe-arrow">&#8595;</div>
+      <div class="pipe-step"><h4>&#128226; Onju Voice 2</h4><p>Plays the response (ESPHome speaker)</p></div>
+    </div>
+
+    <div class="info-box">
+      <h4>How it works</h4>
+      <p>The Onju Voice 2 listens for "OK Nabu". When triggered, it streams audio to the NUC, which converts speech to text locally with Whisper. The text goes to Claude Haiku 4.5 (cloud), which interprets the command. Device commands (lights, switches) go straight to HA. General questions get answered by Claude. The response is converted to speech by Piper (local) and played on the Onju speaker. Total time: 2-3 seconds.</p>
+    </div>
+  </div>
+
+  <!-- DEVICES -->
+  <div class="page" id="page-devices">
+    <div class="page-header">
+      <h2>Devices</h2>
+      <p>All connected hardware across the apartment.</p>
+    </div>
+    <div class="card-grid">
+      <div class="card"><h3>&#128187; Intel NUC</h3><p>i7-8559U, 16GB RAM, 185GB free. Runs HA OS 24/7.</p></div>
+      <div class="card"><h3>&#128226; Onju Voice 2</h3><p>ESPHome voice satellite. Wake word + speaker.</p></div>
+      <div class="card"><h3>&#127911; Chromecast (Stairs)</h3><p>Media player for BBC/KissKiss radio streams.</p></div>
+      <div class="card"><h3>&#128267; SkyConnect (Zigbee)</h3><p>USB coordinator for ZHA + Thread/Matter.</p></div>
+      <div class="card"><h3>&#128267; Z-Wave Stick</h3><p>USB controller for Z-Wave JS devices.</p></div>
+      <div class="card"><h3>&#127777; Aranet4</h3><p>Bluetooth air quality: temp, humidity, CO2, pressure.</p></div>
+      <div class="card"><h3>&#128276; Aeotec Doorbell 6</h3><p>Z-Wave doorbell, 30 tones, 8 endpoints.</p></div>
+      <div class="card"><h3>&#128241; Phone + iPad</h3><p>Mobile companions with battery tracking.</p></div>
+    </div>
+  </div>
+
+  <!-- SECURITY -->
+  <div class="page" id="page-security">
+    <div class="page-header">
+      <h2>Security & Secrets</h2>
+      <p>Two layers of protection &mdash; like having both a safe and a safety deposit box.</p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#128274; git-crypt (The Safe)</h3>
+        <p>Encrypts sensitive files in the GitHub repo. Transparent on your PC, scrambled on GitHub.</p>
+        <div class="detail">
+          <ul>
+            <li>Encrypts the <code>secrets/</code> folder automatically</li>
+            <li>AES-256 encryption</li>
+            <li>Master key backed up in 1Password</li>
+            <li>Without the key, GitHub files are unreadable</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#128272; 1Password (The Safety Deposit Box)</h3>
+        <p>Primary secret store with audit trail. Every API key and password lives here.</p>
+        <div class="detail">
+          <ul>
+            <li>Vault: "Claude Config"</li>
+            <li>Stores: HA token, Anthropic key, router password</li>
+            <li>Also stores git-crypt master key</li>
+            <li>CLI: <code>op read "op://Claude Config/..."</code></li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#128193; GitHub Repo (The Filing Cabinet)</h3>
+        <p>Version-controlled backup. Private repo with full change history.</p>
+        <div class="detail">
+          <ul>
+            <li>Repo: <code>github.com/thtltntdmrhttn/claude-config</code></li>
+            <li>Auto-syncs on Claude session end</li>
+            <li>Full diff history (like track changes)</li>
+            <li>Can restore any previous version</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <h4>How secrets flow</h4>
+      <p>When Claude needs to talk to Home Assistant, it reads the token from an encrypted file on your PC. That file is encrypted by git-crypt before being pushed to GitHub. The same token is also in 1Password as backup. No secrets are ever hardcoded in scripts or visible in plain text on GitHub.</p>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <div class="page" id="page-architecture">
+    <div class="page-header">
+      <h2>Architecture</h2>
+      <p>How the pieces fit together &mdash; your PC is the front office, the NUC is the back office.</p>
+    </div>
+
+    <div class="pipeline">
+      <div class="pipe-step highlight" style="min-width: 280px;">
+        <h4>&#128187; Your Windows PC</h4>
+        <p>Claude Code, GitHub CLI, 1Password CLI, git-crypt</p>
+      </div>
+      <div class="pipe-arrow">&#8595; Wi-Fi / LAN</div>
+      <div class="pipe-step" style="min-width: 280px;">
+        <h4>&#128421; Intel NUC Server</h4>
+        <p>Home Assistant OS, Whisper, Piper, Ollama</p>
+      </div>
+      <div class="pipe-arrow">&#8595; Z-Wave / Zigbee / Wi-Fi / BLE / Thread</div>
+      <div class="pipe-step" style="min-width: 280px;">
+        <h4>&#127968; Smart Devices</h4>
+        <p>18 lights, 7 switches, doorbell, sensors, speakers</p>
+      </div>
+    </div>
+
+    <div class="section-title">Cloud Services</div>
+    <div class="card-grid">
+      <div class="card">
+        <h3>&#9729; Anthropic API</h3>
+        <p>Claude Haiku 4.5 for voice commands and general questions via the voice pipeline.</p>
+      </div>
+      <div class="card">
+        <h3>&#9729; GitHub</h3>
+        <p>Private repo backing up all configs, skills, memory files. Auto-synced.</p>
+      </div>
+      <div class="card">
+        <h3>&#9729; 1Password</h3>
+        <p>Encrypted vault for API keys, tokens, and the git-crypt master key.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROADMAP -->
+  <div class="page" id="page-roadmap">
+    <div class="page-header">
+      <h2>Roadmap</h2>
+      <p>Click items to mark as done. Progress saves in your browser.</p>
+    </div>
+
+    <ul class="checklist" id="checklist">
+      <li onclick="toggleCheck(this)" data-id="hacs">
+        <div class="check-box">&#10003;</div>
+        <div class="check-content">
+          <h4>Install HACS</h4>
+          <p>Unlocks Mushroom cards, Bubble card, card-mod, Adaptive Lighting.</p>
+          <span class="priority-tag p-high">High Priority</span>
+        </div>
+      </li>
+      <li onclick="toggleCheck(this)" data-id="netgear">
+        <div class="check-box">&#10003;</div>
+        <div class="check-content">
+          <h4>Fix Netgear RAX80 Router</h4>
+          <p>pynetgear library bug. Wait for fix or try HACS custom component.</p>
+          <span class="priority-tag p-med">Medium</span>
+        </div>
+      </li>
+      <li onclick="toggleCheck(this)" data-id="wake">
+        <div class="check-box">&#10003;</div>
+        <div class="check-content">
+          <h4>Change Wake Word to "Computer"</h4>
+          <p>Custom wake word via openWakeWord.</p>
+          <span class="priority-tag p-low">Nice to Have</span>
+        </div>
+      </li>
+      <li onclick="toggleCheck(this)" data-id="homepod">
+        <div class="check-box">&#10003;</div>
+        <div class="check-content">
+          <h4>Fix HomePod / AirPlay</h4>
+          <p>Better speakers for radio via AirPlay.</p>
+          <span class="priority-tag p-med">Medium</span>
+        </div>
+      </li>
+      <li onclick="toggleCheck(this)" data-id="ac">
+        <div class="check-box">&#10003;</div>
+        <div class="check-content">
+          <h4>Add AC Units (GE Profile + Midea)</h4>
+          <p>Smart AC with temperature-based automations.</p>
+          <span class="priority-tag p-med">Medium</span>
+        </div>
+      </li>
+      <li onclick="toggleCheck(this)" data-id="yamaha">
+        <div class="check-box">&#10003;</div>
+        <div class="check-content">
+          <h4>Yamaha MusicCast Integration</h4>
+          <p>Full receiver control &mdash; sources, volume, zones.</p>
+          <span class="priority-tag p-low">Nice to Have</span>
+        </div>
+      </li>
+      <li onclick="toggleCheck(this)" data-id="adaptive">
+        <div class="check-box">&#10003;</div>
+        <div class="check-content">
+          <h4>Adaptive Lighting</h4>
+          <p>Auto color temperature throughout the day (needs HACS).</p>
+          <span class="priority-tag p-low">Nice to Have</span>
+        </div>
+      </li>
+      <li onclick="toggleCheck(this)" data-id="dash2">
+        <div class="check-box">&#10003;</div>
+        <div class="check-content">
+          <h4>Dashboard V2 &mdash; Mushroom Cards</h4>
+          <p>Redesign HA dashboard with modern Mushroom components.</p>
+          <span class="priority-tag p-low">Nice to Have</span>
+        </div>
+      </li>
+      <li onclick="toggleCheck(this)" data-id="auto">
+        <div class="check-box">&#10003;</div>
+        <div class="check-content">
+          <h4>Smart Automations</h4>
+          <p>Motion lights, goodnight routine, arrival detection, morning briefing.</p>
+          <span class="priority-tag p-med">Medium</span>
+        </div>
+      </li>
+      <li onclick="toggleCheck(this)" data-id="onju">
+        <div class="check-box">&#10003;</div>
+        <div class="check-content">
+          <h4>Review Onju Voice 2 Config</h4>
+          <p>Check reference repo for optimal ESPHome setup.</p>
+          <span class="priority-tag p-low">Nice to Have</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- GLOSSARY -->
+  <div class="page" id="page-glossary">
+    <div class="page-header">
+      <h2>Glossary</h2>
+      <p>Technical terms in plain English.</p>
+    </div>
+    <div class="glossary-grid">
+      <div class="gloss-item"><dt>Home Assistant (HA)</dt><dd>Open-source software connecting all smart devices. Like a Bloomberg Terminal for your house.</dd></div>
+      <div class="gloss-item"><dt>Z-Wave / Zigbee</dt><dd>Low-power wireless protocols for smart devices. They create mesh networks where devices relay signals.</dd></div>
+      <div class="gloss-item"><dt>ESPHome</dt><dd>Custom firmware for microcontrollers. The Onju Voice runs on it &mdash; a tiny dedicated computer for one job.</dd></div>
+      <div class="gloss-item"><dt>git / GitHub</dt><dd>Version control. Like "track changes" in Excel but for config files. GitHub is the cloud storage.</dd></div>
+      <div class="gloss-item"><dt>git-crypt</dt><dd>Encrypts files in git. Scrambles them before upload, unscrambles on download. Transparent.</dd></div>
+      <div class="gloss-item"><dt>API</dt><dd>How programs talk to each other. When Claude controls lights, it sends API calls to HA.</dd></div>
+      <div class="gloss-item"><dt>Token</dt><dd>A long password for software-to-software auth. Like a building access card but digital.</dd></div>
+      <div class="gloss-item"><dt>CLI</dt><dd>Text-based interface for software. More powerful than clicking buttons.</dd></div>
+      <div class="gloss-item"><dt>NUC</dt><dd>Intel's small PC (paperback-sized). Runs 24/7 as the home server.</dd></div>
+      <div class="gloss-item"><dt>Matter / Thread</dt><dd>New universal smart home standard backed by Apple, Google, Amazon.</dd></div>
+      <div class="gloss-item"><dt>Webhook</dt><dd>An automatic notification between systems. "When X happens, tell Y about it."</dd></div>
+      <div class="gloss-item"><dt>Docker / Container</dt><dd>A way to run software in isolated packages. Like having separate drawers for each app.</dd></div>
+    </div>
+  </div>
+
+  <!-- FINANCE TOOLS (coming soon) -->
+  <div class="page" id="page-finance">
+    <div class="coming-soon">
+      <div class="icon">&#128200;</div>
+      <h3>Finance Tools</h3>
+      <p>Coming soon. This space will host personal finance dashboards, market data feeds, and analytics integrations.</p>
+    </div>
+  </div>
+
+  <!-- INTEGRATIONS (coming soon) -->
+  <div class="page" id="page-integrations">
+    <div class="coming-soon">
+      <div class="icon">&#128268;</div>
+      <h3>Integrations</h3>
+      <p>Coming soon. Connect external services, APIs, and automation workflows here.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function showPage(id, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    if (btn) btn.classList.add('active');
+    if (window.innerWidth <= 768) toggleSidebar();
+    window.scrollTo(0, 0);
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
+  }
+
+  // Checklist persistence
+  function toggleCheck(el) {
+    el.classList.toggle('done');
+    const done = [];
+    document.querySelectorAll('.checklist li.done').forEach(li => done.push(li.dataset.id));
+    localStorage.setItem('tmh-checklist', JSON.stringify(done));
+  }
+  (function loadChecklist() {
+    try {
+      const done = JSON.parse(localStorage.getItem('tmh-checklist') || '[]');
+      done.forEach(id => {
+        const li = document.querySelector(`.checklist li[data-id="${id}"]`);
+        if (li) li.classList.add('done');
+      });
+    } catch(e) {}
+  })();
+</script>
+
+</body>
+</html>
