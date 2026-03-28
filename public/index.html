@@ -276,6 +276,10 @@
       <span class="icon">&#128214;</span> Glossary
     </button>
 
+    <button class="nav-item" onclick="showPage('website', this)">
+      <span class="icon">&#127760;</span> Website Build
+    </button>
+
     <div class="section-label">Future</div>
     <button class="nav-item" onclick="showPage('finance', this)">
       <span class="icon">&#128200;</span> Finance Tools
@@ -699,6 +703,88 @@
       <div class="gloss-item"><dt>Matter / Thread</dt><dd>New universal smart home standard backed by Apple, Google, Amazon.</dd></div>
       <div class="gloss-item"><dt>Webhook</dt><dd>An automatic notification between systems. "When X happens, tell Y about it."</dd></div>
       <div class="gloss-item"><dt>Docker / Container</dt><dd>A way to run software in isolated packages. Like having separate drawers for each app.</dd></div>
+    </div>
+  </div>
+
+  <!-- WEBSITE BUILD -->
+  <div class="page" id="page-website">
+    <div class="page-header">
+      <h2>Website Build</h2>
+      <p>How this portal was built, deployed, and secured.</p>
+    </div>
+
+    <div class="section-title">Architecture Overview</div>
+    <div class="pipeline">
+      <div class="pipe-step" style="min-width: 260px;">
+        <h4>&#128187; Local Development</h4>
+        <p>Single HTML file edited via Claude Code on Windows PC</p>
+      </div>
+      <div class="pipe-arrow">&#8595; git push</div>
+      <div class="pipe-step" style="min-width: 260px;">
+        <h4>&#9734; GitHub Repository</h4>
+        <p>thtltntdmrhttn/thetalentedmrhatten (public repo)</p>
+      </div>
+      <div class="pipe-arrow">&#8595; auto-deploy on push</div>
+      <div class="pipe-step" style="min-width: 260px;">
+        <h4>&#9729; Cloudflare Pages</h4>
+        <p>Static hosting, global CDN, custom domain</p>
+      </div>
+      <div class="pipe-arrow">&#8595; Cloudflare Access</div>
+      <div class="pipe-step" style="min-width: 260px;">
+        <h4>&#128274; Email-Based Login</h4>
+        <p>Only authorized emails can access the site</p>
+      </div>
+    </div>
+
+    <div class="section-title">Deployment Stack</div>
+    <div class="card-grid">
+      <div class="card">
+        <h3>&#127760; Domain</h3>
+        <p><strong>thetalentedmrhatten.com</strong> &mdash; registered through Cloudflare Registrar (at-cost pricing, no markup). DNS managed directly in Cloudflare.</p>
+      </div>
+      <div class="card">
+        <h3>&#9889; Cloudflare Pages</h3>
+        <p>Free static site hosting. Connected to GitHub &mdash; every push to the <code>master</code> branch triggers an automatic rebuild and deploy within seconds.</p>
+      </div>
+      <div class="card">
+        <h3>&#128274; Cloudflare Access</h3>
+        <p>Zero Trust authentication layer. Users must verify via email OTP before seeing any content. No passwords stored &mdash; Cloudflare handles the auth flow.</p>
+      </div>
+      <div class="card">
+        <h3>&#128230; GitHub Repo</h3>
+        <p>Source code lives in <code>thtltntdmrhttn/thetalentedmrhatten</code>. The <code>public/</code> folder contains the site. Cloudflare's GitHub App has read-only access to this repo only.</p>
+      </div>
+    </div>
+
+    <div class="section-title">Security Model</div>
+    <div class="card-grid">
+      <div class="card">
+        <h3>&#128737; Access Control</h3>
+        <p>Cloudflare Access acts as a reverse proxy. Before any page content loads, visitors must authenticate via a one-time code sent to an approved email address.</p>
+      </div>
+      <div class="card">
+        <h3>&#128272; No Secrets in Code</h3>
+        <p>This portal contains no API keys, tokens, or passwords. All sensitive data stays in 1Password and git-crypt encrypted files on the local machine.</p>
+      </div>
+      <div class="card">
+        <h3>&#127758; Edge Security</h3>
+        <p>Cloudflare provides DDoS protection, SSL/TLS encryption, and WAF (Web Application Firewall) on the free tier. All traffic is proxied through their network.</p>
+      </div>
+      <div class="card">
+        <h3>&#128273; GitHub App Scope</h3>
+        <p>Cloudflare's GitHub integration is limited to the <code>thetalentedmrhatten</code> repo only. It cannot access the private <code>claude-config</code> repo or any other repos.</p>
+      </div>
+    </div>
+
+    <div class="section-title">How to Update the Site</div>
+    <div class="card" style="max-width: 700px;">
+      <h3>&#128221; Workflow</h3>
+      <ol style="padding-left: 1.2rem; line-height: 2;">
+        <li>Edit <code>public/index.html</code> locally (via Claude Code or any editor)</li>
+        <li>Commit and push to GitHub: <code>git add -A && git commit -m "update" && git push</code></li>
+        <li>Cloudflare Pages auto-deploys within ~30 seconds</li>
+        <li>Visit <strong>thetalentedmrhatten.com</strong> to verify</li>
+      </ol>
     </div>
   </div>
 
