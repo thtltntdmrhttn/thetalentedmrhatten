@@ -197,6 +197,57 @@
   .coming-soon h3 { color: var(--text-bright); margin-bottom: 0.5rem; }
   .coming-soon p { color: var(--text-dim); font-size: 0.9rem; max-width: 400px; }
 
+  /* ---- WINE CELLAR ---- */
+  .wine-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+  .wine-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+  .wine-table th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); }
+  .wine-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--text); }
+  .wine-table tr:hover td { background: var(--surface2); }
+  .wine-type { display: inline-block; font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  .wine-red { background: rgba(220,38,38,0.15); color: #f87171; }
+  .wine-white { background: rgba(234,179,8,0.15); color: #fbbf24; }
+  .wine-rose { background: rgba(244,114,182,0.15); color: #f472b6; }
+  .wine-sparkling { background: rgba(168,162,158,0.15); color: #d6d3d1; }
+  .wine-form { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .wine-form input, .wine-form select { padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.85rem; outline: none; }
+  .wine-form input:focus, .wine-form select:focus { border-color: var(--accent); }
+  .wine-form .full-width { grid-column: 1 / -1; }
+  .wine-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .wine-tab { padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border); background: none; color: var(--text-dim); font-size: 0.82rem; cursor: pointer; font-weight: 500; }
+  .wine-tab.active { background: var(--accent-dim); color: var(--accent-text); border-color: var(--accent); }
+
+  /* ---- REMINDERS ---- */
+  .reminder-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+  .reminder-item .reminder-time { font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.35rem; }
+  .reminder-item .reminder-text { font-size: 0.875rem; color: var(--text); line-height: 1.5; }
+  .reminder-item .reminder-tag { display: inline-block; font-size: 0.65rem; padding: 1px 6px; border-radius: 4px; font-weight: 600; margin-top: 0.5rem; }
+  .reminder-item.unread { border-left: 3px solid var(--accent); }
+  .reminder-input-area { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .reminder-input-area textarea { flex: 1; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.85rem; outline: none; resize: vertical; min-height: 60px; font-family: inherit; }
+  .reminder-input-area textarea:focus { border-color: var(--accent); }
+  .reminder-filters { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .reminder-filter { padding: 0.4rem 0.75rem; border-radius: 6px; border: 1px solid var(--border); background: none; color: var(--text-dim); font-size: 0.78rem; cursor: pointer; }
+  .reminder-filter.active { background: var(--accent-dim); color: var(--accent-text); border-color: var(--accent); }
+
+  /* ---- FINANCE ---- */
+  .market-ticker { display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+  .ticker-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; min-width: 140px; flex-shrink: 0; }
+  .ticker-item .ticker-symbol { font-size: 0.75rem; color: var(--text-dim); font-weight: 600; }
+  .ticker-item .ticker-price { font-size: 1.1rem; font-weight: 700; color: var(--text-bright); margin-top: 2px; }
+  .ticker-item .ticker-change { font-size: 0.75rem; margin-top: 2px; font-weight: 600; }
+  .ticker-up { color: var(--green); }
+  .ticker-down { color: var(--red); }
+  .ticker-flat { color: var(--text-dim); }
+  .news-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; cursor: pointer; transition: border-color 0.2s; }
+  .news-item:hover { border-color: var(--border-hover); }
+  .news-item .news-source { font-size: 0.7rem; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .news-item .news-title { font-size: 0.9rem; color: var(--text-bright); margin-top: 0.25rem; font-weight: 500; }
+  .news-item .news-time { font-size: 0.7rem; color: var(--text-dim); margin-top: 0.35rem; }
+  .watchlist-table { width: 100%; border-collapse: collapse; }
+  .watchlist-table th { text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+  .watchlist-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--text); }
+  .watchlist-table tr:hover td { background: var(--surface2); }
+
   /* ---- SECTION TITLE IN PAGE ---- */
   .section-title {
     font-size: 1.1rem; font-weight: 600; color: var(--text-bright);
@@ -287,11 +338,21 @@
       <span class="badge badge-orange">2FA</span>
     </button>
 
-    <div class="section-label">Future</div>
-    <button class="nav-item" onclick="showPage('finance', this)">
-      <span class="icon">&#128200;</span> Finance Tools
-      <span class="badge badge-blue">Soon</span>
+    <div class="section-label">Lifestyle</div>
+    <button class="nav-item" onclick="showPage('wine', this)">
+      <span class="icon">&#127863;</span> Wine Cellar
+      <span class="badge badge-green">Live</span>
     </button>
+    <button class="nav-item" onclick="showPage('reminders', this)">
+      <span class="icon">&#128276;</span> Reminders
+    </button>
+
+    <button class="nav-item" onclick="showPage('finance', this)">
+      <span class="icon">&#128200;</span> Finance
+      <span class="badge badge-green">Live</span>
+    </button>
+
+    <div class="section-label">Future</div>
     <button class="nav-item" onclick="showPage('integrations', this)">
       <span class="icon">&#128268;</span> Integrations
       <span class="badge badge-blue">Soon</span>
@@ -931,12 +992,238 @@
     </div>
   </div>
 
-  <!-- FINANCE TOOLS (coming soon) -->
+  <!-- WINE CELLAR -->
+  <div class="page" id="page-wine">
+    <div class="page-header">
+      <h2>Wine Cellar</h2>
+      <p>Personal collection &mdash; home storage and MWC offsite cellar.</p>
+    </div>
+
+    <div class="wine-stats">
+      <div class="stat">
+        <div class="label">Total Bottles</div>
+        <div class="value" id="wine-total">0</div>
+        <div class="sub">All locations</div>
+      </div>
+      <div class="stat">
+        <div class="label">Home</div>
+        <div class="value" id="wine-home">0</div>
+        <div class="sub">Bushwick apt</div>
+      </div>
+      <div class="stat">
+        <div class="label">MWC Cellar</div>
+        <div class="value" id="wine-mwc">0</div>
+        <div class="sub">Offsite storage</div>
+      </div>
+      <div class="stat">
+        <div class="label">Types</div>
+        <div class="value" id="wine-types">-</div>
+        <div class="sub">Red / White / Other</div>
+      </div>
+    </div>
+
+    <div class="wine-tabs">
+      <button class="wine-tab active" onclick="showWineTab('collection', this)">Collection</button>
+      <button class="wine-tab" onclick="showWineTab('add', this)">Add Wine</button>
+      <button class="wine-tab" onclick="showWineTab('scan', this)">Scan Label</button>
+      <button class="wine-tab" onclick="showWineTab('mwc', this)">MWC Cellar</button>
+    </div>
+
+    <!-- Collection Tab -->
+    <div id="wine-tab-collection">
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+        <input type="text" id="wine-search" placeholder="Search wines..." oninput="renderWineTable()"
+          style="flex:1; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.85rem; outline: none;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" />
+        <select id="wine-filter-type" onchange="renderWineTable()"
+          style="padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.85rem;">
+          <option value="">All Types</option>
+          <option value="Red">Red</option>
+          <option value="White">White</option>
+          <option value="Ros&eacute;">Ros&eacute;</option>
+          <option value="Sparkling">Sparkling</option>
+        </select>
+        <select id="wine-filter-location" onchange="renderWineTable()"
+          style="padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.85rem;">
+          <option value="">All Locations</option>
+          <option value="Home">Home</option>
+          <option value="MWC">MWC Cellar</option>
+        </select>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="wine-table" id="wine-table">
+          <thead><tr><th>Wine</th><th>Type</th><th>Vintage</th><th>Region</th><th>Location</th><th>Qty</th><th></th></tr></thead>
+          <tbody id="wine-tbody"></tbody>
+        </table>
+      </div>
+      <div id="wine-empty" style="text-align: center; padding: 3rem 0; color: var(--text-dim); display: none;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.3;">&#127863;</div>
+        <p>No wines yet. Add your first bottle!</p>
+      </div>
+    </div>
+
+    <!-- Add Wine Tab -->
+    <div id="wine-tab-add" style="display: none;">
+      <div class="card" style="cursor: default; max-width: 700px;">
+        <h3>&#127863; Add a Wine</h3>
+        <p style="margin-bottom: 1rem; font-size: 0.825rem; color: var(--text-dim);">Manually add a wine to your collection.</p>
+        <div class="wine-form" id="wine-add-form">
+          <input type="text" id="wine-name" placeholder="Wine name (e.g. Barolo Riserva)" />
+          <input type="text" id="wine-producer" placeholder="Producer / Winery" />
+          <select id="wine-type">
+            <option value="Red">Red</option>
+            <option value="White">White</option>
+            <option value="Ros&eacute;">Ros&eacute;</option>
+            <option value="Sparkling">Sparkling</option>
+          </select>
+          <input type="text" id="wine-vintage" placeholder="Vintage (e.g. 2019)" />
+          <input type="text" id="wine-region" placeholder="Region (e.g. Piedmont, Italy)" />
+          <input type="text" id="wine-grape" placeholder="Grape (e.g. Nebbiolo)" />
+          <select id="wine-location">
+            <option value="Home">Home (Bushwick)</option>
+            <option value="MWC">MWC Cellar</option>
+          </select>
+          <input type="number" id="wine-qty" placeholder="Quantity" value="1" min="1" />
+          <input type="text" id="wine-notes" placeholder="Tasting notes or comments" class="full-width" />
+          <div class="full-width" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button onclick="addWine()"
+              style="padding: 0.6rem 1.5rem; border-radius: 8px; border: none; background: var(--accent); color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+              Add to Cellar
+            </button>
+          </div>
+        </div>
+        <div id="wine-add-msg" style="font-size: 0.8rem; margin-top: 0.75rem;"></div>
+      </div>
+    </div>
+
+    <!-- Scan Label Tab -->
+    <div id="wine-tab-scan" style="display: none;">
+      <div class="card" style="cursor: default; max-width: 600px; text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">&#128247;</div>
+        <h3>Scan Wine Label</h3>
+        <p style="margin-bottom: 1.5rem; font-size: 0.825rem; color: var(--text-dim);">Take a photo of a wine label and Claude will identify it and add it to your cellar.</p>
+        <label for="wine-photo-input"
+          style="display: inline-block; padding: 0.75rem 2rem; border-radius: 8px; border: 2px dashed var(--border); background: var(--surface2); color: var(--accent-text); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: border-color 0.2s;"
+          onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          &#128247; Choose Photo or Take Picture
+        </label>
+        <input type="file" id="wine-photo-input" accept="image/*" capture="environment" style="display: none;" onchange="handleWinePhoto(this)" />
+        <div id="wine-photo-preview" style="margin-top: 1rem;"></div>
+        <div id="wine-scan-msg" style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.75rem;"></div>
+        <div id="wine-scan-result" style="display: none; margin-top: 1rem; text-align: left;"></div>
+      </div>
+    </div>
+
+    <!-- MWC Cellar Tab -->
+    <div id="wine-tab-mwc" style="display: none;">
+      <div class="info-box">
+        <h4>MWC Cellar &mdash; Offsite Storage</h4>
+        <p>Your wines stored at Manhattan Wine Company. Use the filters above to view only MWC wines, or sync your inventory below.</p>
+      </div>
+      <div style="margin-top: 1rem;">
+        <button onclick="renderWineTable(); document.getElementById('wine-filter-location').value='MWC'; renderWineTable();"
+          style="padding: 0.6rem 1.25rem; border-radius: 8px; border: none; background: var(--accent); color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+          View MWC Wines
+        </button>
+      </div>
+      <div id="mwc-wines" style="margin-top: 1rem;"></div>
+    </div>
+  </div>
+
+  <!-- REMINDERS -->
+  <div class="page" id="page-reminders">
+    <div class="page-header">
+      <h2>Reminders &amp; Summaries</h2>
+      <p>Notes, reminders, and session summaries &mdash; read on the go from any device.</p>
+    </div>
+
+    <div class="reminder-input-area">
+      <textarea id="reminder-text" placeholder="Write a reminder, note, or summary..."></textarea>
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <select id="reminder-type" style="padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.8rem;">
+          <option value="reminder">Reminder</option>
+          <option value="summary">Session Summary</option>
+          <option value="note">Quick Note</option>
+          <option value="todo">To-Do</option>
+        </select>
+        <button onclick="addReminder()"
+          style="padding: 0.5rem 1rem; border-radius: 8px; border: none; background: var(--accent); color: white; font-weight: 600; font-size: 0.82rem; cursor: pointer;">
+          Save
+        </button>
+      </div>
+    </div>
+
+    <div class="reminder-filters">
+      <button class="reminder-filter active" onclick="filterReminders('all', this)">All</button>
+      <button class="reminder-filter" onclick="filterReminders('reminder', this)">Reminders</button>
+      <button class="reminder-filter" onclick="filterReminders('summary', this)">Summaries</button>
+      <button class="reminder-filter" onclick="filterReminders('note', this)">Notes</button>
+      <button class="reminder-filter" onclick="filterReminders('todo', this)">To-Dos</button>
+      <button class="reminder-filter" onclick="filterReminders('unread', this)">Unread</button>
+    </div>
+
+    <div id="reminders-list"></div>
+    <div id="reminders-empty" style="text-align: center; padding: 3rem 0; color: var(--text-dim); display: none;">
+      <div style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.3;">&#128276;</div>
+      <p>No reminders yet. Add one above or Claude will post session summaries here.</p>
+    </div>
+  </div>
+
+  <!-- FINANCE -->
   <div class="page" id="page-finance">
-    <div class="coming-soon">
-      <div class="icon">&#128200;</div>
-      <h3>Finance Tools</h3>
-      <p>Coming soon. This space will host personal finance dashboards, market data feeds, and analytics integrations.</p>
+    <div class="page-header">
+      <h2>Finance</h2>
+      <p>Market data, watchlist, and financial news &mdash; updated on page load.</p>
+    </div>
+
+    <div class="section-title">Market Snapshot</div>
+    <div class="market-ticker" id="market-ticker">
+      <div class="ticker-item"><div class="ticker-symbol">S&amp;P 500</div><div class="ticker-price" id="price-spy">--</div><div class="ticker-change ticker-flat" id="change-spy">--</div></div>
+      <div class="ticker-item"><div class="ticker-symbol">NASDAQ</div><div class="ticker-price" id="price-qqq">--</div><div class="ticker-change ticker-flat" id="change-qqq">--</div></div>
+      <div class="ticker-item"><div class="ticker-symbol">DOW</div><div class="ticker-price" id="price-dia">--</div><div class="ticker-change ticker-flat" id="change-dia">--</div></div>
+      <div class="ticker-item"><div class="ticker-symbol">BTC</div><div class="ticker-price" id="price-btc">--</div><div class="ticker-change ticker-flat" id="change-btc">--</div></div>
+      <div class="ticker-item"><div class="ticker-symbol">EUR/USD</div><div class="ticker-price" id="price-eurusd">--</div><div class="ticker-change ticker-flat" id="change-eurusd">--</div></div>
+      <div class="ticker-item"><div class="ticker-symbol">GBP/USD</div><div class="ticker-price" id="price-gbpusd">--</div><div class="ticker-change ticker-flat" id="change-gbpusd">--</div></div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+      <div>
+        <div class="section-title">Watchlist</div>
+        <div class="card" style="cursor: default; padding: 0; overflow: hidden;">
+          <table class="watchlist-table" id="watchlist-table">
+            <thead><tr><th>Symbol</th><th>Price</th><th>Change</th><th></th></tr></thead>
+            <tbody id="watchlist-tbody"></tbody>
+          </table>
+          <div style="padding: 0.75rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem;">
+            <input type="text" id="watchlist-add-input" placeholder="Add symbol (e.g. AAPL)" maxlength="10"
+              style="flex:1; padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.82rem; outline: none; text-transform: uppercase;"
+              onkeydown="if(event.key==='Enter')addToWatchlist()" />
+            <button onclick="addToWatchlist()"
+              style="padding: 0.5rem 0.75rem; border-radius: 6px; border: none; background: var(--accent); color: white; font-size: 0.78rem; font-weight: 600; cursor: pointer;">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Financial News</div>
+        <div id="finance-news">
+          <div class="news-item"><div class="news-source">Loading...</div><div class="news-title">Fetching latest financial headlines...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top: 2rem;">FT.com Integration</div>
+    <div class="card" style="cursor: default; max-width: 700px;">
+      <h3>&#128240; Financial Times</h3>
+      <p style="margin-bottom: 1rem; font-size: 0.825rem; color: var(--text-dim);">Connect your FT.com subscription for premium market data and analysis.</p>
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+        <input type="password" id="ft-api-key" placeholder="FT API key or session token"
+          style="flex:1; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-size: 0.85rem; outline: none;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" />
+        <button onclick="saveFtKey()"
+          style="padding: 0.6rem 1rem; border-radius: 8px; border: none; background: var(--green); color: white; font-weight: 600; font-size: 0.82rem; cursor: pointer;">Save</button>
+      </div>
+      <div id="ft-msg" style="font-size: 0.75rem; color: var(--text-dim);">FT API key stored in browser only. Used for premium content access.</div>
     </div>
   </div>
 
@@ -952,6 +1239,47 @@
 </div>
 
 <script>
+  // ---- VISITOR GATE ----
+  // Cloudflare Access sets a JWT in the CF_Authorization cookie with the user's email.
+  // If the user is not in the approved list, show only the access request page.
+  const APPROVED_EMAILS = ['terence.hatten@gmail.com'];
+
+  function getCfEmail() {
+    try {
+      const cookie = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('CF_Authorization='));
+      if (!cookie) return null;
+      const token = cookie.split('=')[1];
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.email || null;
+    } catch(e) { return null; }
+  }
+
+  function isApprovedUser(email) {
+    if (!email) return true; // Local dev / no CF — allow through
+    const approved = JSON.parse(localStorage.getItem('tmh-approved-users') || '[]');
+    return APPROVED_EMAILS.includes(email) || approved.includes(email);
+  }
+
+  (function gateCheck() {
+    const email = getCfEmail();
+    window._visitorEmail = email;
+    if (email && !isApprovedUser(email)) {
+      // Hide everything except the access page
+      document.querySelectorAll('.nav-item').forEach(n => n.style.display = 'none');
+      document.querySelectorAll('.section-label').forEach(l => l.style.display = 'none');
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-access').classList.add('active');
+      // Auto-fill their email in the request form
+      const emailInput = document.getElementById('access-email');
+      if (emailInput) emailInput.value = email;
+      // Show a message
+      const header = document.querySelector('#page-access .page-header p');
+      if (header) header.textContent = 'Your email (' + email + ') is not yet approved. Submit a request below and the admin will review it.';
+      // Hide admin panel for non-admins
+      document.getElementById('admin-panel').style.display = 'none';
+    }
+  })();
+
   function showPage(id, btn) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -1041,16 +1369,20 @@
     el.innerHTML = html;
   }
 
-  function toggleAdminAuth() {
-    const pin = prompt('Enter admin PIN:');
-    if (pin === '2026') {
+  async function toggleAdminAuth() {
+    const code = prompt('Enter authenticator code:');
+    if (code === null) return;
+    const secret = localStorage.getItem('tmh-totp-secret');
+    if (!secret) { alert('TOTP not configured yet. Set it up in Remote Terminal first.'); return; }
+    const valid = await verifyTOTP(secret, code.replace(/\s/g, ''));
+    if (valid) {
       window._adminUnlocked = true;
       document.getElementById('admin-lock-btn').innerHTML = '&#128275; Admin Unlocked';
       document.getElementById('admin-lock-btn').style.borderColor = 'var(--green)';
       document.getElementById('admin-lock-btn').style.color = 'var(--green)';
       document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'inline-block');
-    } else if (pin !== null) {
-      alert('Incorrect PIN.');
+    } else {
+      alert('Invalid code. Use the same authenticator app as Remote Terminal.');
     }
   }
   renderPendingRequests();
@@ -1303,6 +1635,359 @@
       document.getElementById('terminal-status').style.color = 'var(--green)';
     }
   })();
+
+  // ---- WINE CELLAR ----
+  function getWines() { return JSON.parse(localStorage.getItem('tmh-wines') || '[]'); }
+  function saveWines(wines) { localStorage.setItem('tmh-wines', JSON.stringify(wines)); updateWineStats(); }
+
+  function updateWineStats() {
+    const wines = getWines();
+    const total = wines.reduce((s, w) => s + (w.qty || 1), 0);
+    const home = wines.filter(w => w.location === 'Home').reduce((s, w) => s + (w.qty || 1), 0);
+    const mwc = wines.filter(w => w.location === 'MWC').reduce((s, w) => s + (w.qty || 1), 0);
+    const types = [...new Set(wines.map(w => w.type))];
+    document.getElementById('wine-total').textContent = total;
+    document.getElementById('wine-home').textContent = home;
+    document.getElementById('wine-mwc').textContent = mwc;
+    document.getElementById('wine-types').textContent = types.length ? types.join(' / ') : '-';
+  }
+
+  function showWineTab(tab, btn) {
+    document.querySelectorAll('[id^="wine-tab-"]').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.wine-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('wine-tab-' + tab).style.display = 'block';
+    if (btn) btn.classList.add('active');
+  }
+
+  function renderWineTable() {
+    const wines = getWines();
+    const search = (document.getElementById('wine-search').value || '').toLowerCase();
+    const typeFilter = document.getElementById('wine-filter-type').value;
+    const locFilter = document.getElementById('wine-filter-location').value;
+    const filtered = wines.filter(w => {
+      if (search && !(w.name + ' ' + w.producer + ' ' + w.region + ' ' + w.grape).toLowerCase().includes(search)) return false;
+      if (typeFilter && w.type !== typeFilter) return false;
+      if (locFilter && w.location !== locFilter) return false;
+      return true;
+    });
+    const tbody = document.getElementById('wine-tbody');
+    const empty = document.getElementById('wine-empty');
+    if (!filtered.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    const typeClass = t => t === 'Red' ? 'wine-red' : t === 'White' ? 'wine-white' : t === 'Rosé' ? 'wine-rose' : 'wine-sparkling';
+    tbody.innerHTML = filtered.map((w, i) => `<tr>
+      <td><strong>${esc(w.name)}</strong>${w.producer ? '<br><span style="font-size:0.75rem;color:var(--text-dim);">' + esc(w.producer) + '</span>' : ''}</td>
+      <td><span class="wine-type ${typeClass(w.type)}">${esc(w.type)}</span></td>
+      <td>${esc(w.vintage || '-')}</td>
+      <td>${esc(w.region || '-')}</td>
+      <td>${esc(w.location)}</td>
+      <td>${w.qty || 1}</td>
+      <td><button onclick="removeWine(${wines.indexOf(w)})" style="padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:none;color:var(--red);font-size:0.7rem;cursor:pointer;">x</button></td>
+    </tr>`).join('');
+  }
+
+  function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
+
+  function addWine() {
+    const name = document.getElementById('wine-name').value.trim();
+    if (!name) { document.getElementById('wine-add-msg').style.color = 'var(--red)'; document.getElementById('wine-add-msg').textContent = 'Wine name is required.'; return; }
+    const wine = {
+      name, producer: document.getElementById('wine-producer').value.trim(),
+      type: document.getElementById('wine-type').value,
+      vintage: document.getElementById('wine-vintage').value.trim(),
+      region: document.getElementById('wine-region').value.trim(),
+      grape: document.getElementById('wine-grape').value.trim(),
+      location: document.getElementById('wine-location').value,
+      qty: parseInt(document.getElementById('wine-qty').value) || 1,
+      notes: document.getElementById('wine-notes').value.trim(),
+      added: new Date().toISOString().slice(0, 10)
+    };
+    const wines = getWines();
+    wines.push(wine);
+    saveWines(wines);
+    renderWineTable();
+    document.getElementById('wine-add-msg').style.color = 'var(--green)';
+    document.getElementById('wine-add-msg').textContent = `Added "${name}" to ${wine.location}!`;
+    ['wine-name','wine-producer','wine-vintage','wine-region','wine-grape','wine-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('wine-qty').value = '1';
+  }
+
+  function removeWine(idx) {
+    const wines = getWines();
+    if (idx >= 0 && idx < wines.length) { wines.splice(idx, 1); saveWines(wines); renderWineTable(); }
+  }
+
+  function handleWinePhoto(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const preview = document.getElementById('wine-photo-preview');
+    const msg = document.getElementById('wine-scan-msg');
+    const result = document.getElementById('wine-scan-result');
+    const img = document.createElement('img');
+    img.style.maxWidth = '300px';
+    img.style.borderRadius = '8px';
+    img.style.border = '1px solid var(--border)';
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      img.src = e.target.result;
+      preview.innerHTML = '';
+      preview.appendChild(img);
+      msg.textContent = 'Analyzing label with Claude...';
+      msg.style.color = 'var(--orange)';
+      const apiKey = localStorage.getItem('tmh-api-key');
+      if (!apiKey) { msg.style.color = 'var(--red)'; msg.textContent = 'Set your API key in Remote Terminal settings first.'; return; }
+      try {
+        const base64 = e.target.result.split(',')[1];
+        const mediaType = file.type || 'image/jpeg';
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514', max_tokens: 1024,
+            messages: [{ role: 'user', content: [
+              { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+              { type: 'text', text: 'This is a wine label photo. Extract: wine name, producer/winery, type (Red/White/Rosé/Sparkling), vintage year, region, grape variety. Return ONLY valid JSON: {"name":"...","producer":"...","type":"...","vintage":"...","region":"...","grape":"..."}' }
+            ]}]
+          })
+        });
+        const data = await resp.json();
+        if (data.content && data.content[0]) {
+          const text = data.content[0].text;
+          const jsonMatch = text.match(/\{[\s\S]*?\}/);
+          if (jsonMatch) {
+            const wine = JSON.parse(jsonMatch[0]);
+            wine.location = 'Home'; wine.qty = 1; wine.added = new Date().toISOString().slice(0, 10);
+            wine.notes = 'Added via label scan';
+            result.style.display = 'block';
+            result.innerHTML = `<div class="card" style="cursor:default;">
+              <h3>&#10004; Wine Identified</h3>
+              <p><strong>${esc(wine.name)}</strong> by ${esc(wine.producer || 'Unknown')}</p>
+              <p style="font-size:0.8rem;color:var(--text-dim);">${esc(wine.type)} &middot; ${esc(wine.vintage || '?')} &middot; ${esc(wine.region || '?')} &middot; ${esc(wine.grape || '?')}</p>
+              <div style="margin-top:0.75rem;display:flex;gap:0.5rem;">
+                <select id="scan-location" style="padding:0.4rem 0.6rem;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-bright);font-size:0.8rem;">
+                  <option value="Home">Home</option><option value="MWC">MWC Cellar</option>
+                </select>
+                <button onclick="addScannedWine()" style="padding:0.4rem 1rem;border-radius:6px;border:none;background:var(--green);color:white;font-weight:600;font-size:0.8rem;cursor:pointer;">Add to Cellar</button>
+              </div>
+            </div>`;
+            window._scannedWine = wine;
+            msg.style.color = 'var(--green)';
+            msg.textContent = 'Label analyzed successfully!';
+          } else { msg.style.color = 'var(--red)'; msg.textContent = 'Could not parse wine data from label.'; }
+        } else { msg.style.color = 'var(--red)'; msg.textContent = 'API error: ' + JSON.stringify(data.error || data); }
+      } catch(e) { msg.style.color = 'var(--red)'; msg.textContent = 'Error: ' + e.message; }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function addScannedWine() {
+    if (!window._scannedWine) return;
+    const wine = window._scannedWine;
+    wine.location = document.getElementById('scan-location').value;
+    const wines = getWines();
+    wines.push(wine);
+    saveWines(wines);
+    renderWineTable();
+    document.getElementById('wine-scan-msg').style.color = 'var(--green)';
+    document.getElementById('wine-scan-msg').textContent = `Added "${wine.name}" to ${wine.location}!`;
+    document.getElementById('wine-scan-result').style.display = 'none';
+    window._scannedWine = null;
+  }
+
+  // Init wine cellar
+  updateWineStats();
+  renderWineTable();
+
+  // ---- REMINDERS ----
+  function getReminders() { return JSON.parse(localStorage.getItem('tmh-reminders') || '[]'); }
+  function saveReminders(list) { localStorage.setItem('tmh-reminders', JSON.stringify(list)); }
+
+  function addReminder() {
+    const text = document.getElementById('reminder-text').value.trim();
+    if (!text) return;
+    const type = document.getElementById('reminder-type').value;
+    const reminders = getReminders();
+    reminders.unshift({ text, type, time: new Date().toISOString(), read: false, id: Date.now() });
+    saveReminders(reminders);
+    document.getElementById('reminder-text').value = '';
+    renderReminders();
+  }
+
+  function renderReminders(filter) {
+    filter = filter || window._reminderFilter || 'all';
+    window._reminderFilter = filter;
+    let reminders = getReminders();
+    if (filter === 'unread') reminders = reminders.filter(r => !r.read);
+    else if (filter !== 'all') reminders = reminders.filter(r => r.type === filter);
+    const list = document.getElementById('reminders-list');
+    const empty = document.getElementById('reminders-empty');
+    if (!reminders.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    const typeColors = { reminder: 'var(--accent)', summary: 'var(--blue)', note: 'var(--green)', todo: 'var(--orange)' };
+    const typeLabels = { reminder: 'Reminder', summary: 'Summary', note: 'Note', todo: 'To-Do' };
+    list.innerHTML = reminders.map(r => {
+      const d = new Date(r.time);
+      const timeStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' at ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      return `<div class="reminder-item${r.read ? '' : ' unread'}" onclick="markRead(${r.id})">
+        <div class="reminder-time">${timeStr}</div>
+        <div class="reminder-text">${esc(r.text).replace(/\n/g, '<br>')}</div>
+        <span class="reminder-tag" style="background:${typeColors[r.type]}22;color:${typeColors[r.type]};">${typeLabels[r.type] || r.type}</span>
+        <button onclick="event.stopPropagation();deleteReminder(${r.id})" style="float:right;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:none;color:var(--red);font-size:0.7rem;cursor:pointer;margin-top:-1.5rem;">delete</button>
+      </div>`;
+    }).join('');
+  }
+
+  function markRead(id) {
+    const reminders = getReminders();
+    const r = reminders.find(x => x.id === id);
+    if (r) { r.read = true; saveReminders(reminders); renderReminders(); }
+  }
+
+  function deleteReminder(id) {
+    const reminders = getReminders().filter(x => x.id !== id);
+    saveReminders(reminders);
+    renderReminders();
+  }
+
+  function filterReminders(filter, btn) {
+    document.querySelectorAll('.reminder-filter').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderReminders(filter);
+  }
+
+  renderReminders();
+
+  // ---- FINANCE ----
+  function getWatchlist() { return JSON.parse(localStorage.getItem('tmh-watchlist') || '["AAPL","MSFT","GOOGL","AMZN","NVDA"]'); }
+  function saveWatchlist(list) { localStorage.setItem('tmh-watchlist', JSON.stringify(list)); }
+
+  function saveFtKey() {
+    const key = document.getElementById('ft-api-key').value.trim();
+    if (!key) return;
+    localStorage.setItem('tmh-ft-key', key);
+    document.getElementById('ft-api-key').value = '';
+    document.getElementById('ft-msg').style.color = 'var(--green)';
+    document.getElementById('ft-msg').textContent = 'FT API key saved.';
+  }
+
+  function addToWatchlist() {
+    const input = document.getElementById('watchlist-add-input');
+    const symbol = input.value.trim().toUpperCase();
+    if (!symbol) return;
+    const list = getWatchlist();
+    if (list.includes(symbol)) { input.value = ''; return; }
+    list.push(symbol);
+    saveWatchlist(list);
+    input.value = '';
+    renderWatchlist();
+  }
+
+  function removeFromWatchlist(symbol) {
+    const list = getWatchlist().filter(s => s !== symbol);
+    saveWatchlist(list);
+    renderWatchlist();
+  }
+
+  function renderWatchlist() {
+    const list = getWatchlist();
+    const tbody = document.getElementById('watchlist-tbody');
+    tbody.innerHTML = list.map(s => `<tr>
+      <td style="font-weight:600;color:var(--text-bright);">${s}</td>
+      <td id="wl-price-${s}">--</td>
+      <td id="wl-change-${s}" class="ticker-flat">--</td>
+      <td><button onclick="removeFromWatchlist('${s}')" style="padding:1px 6px;border-radius:4px;border:1px solid var(--border);background:none;color:var(--red);font-size:0.65rem;cursor:pointer;">x</button></td>
+    </tr>`).join('');
+  }
+
+  async function fetchMarketData() {
+    // Use free Yahoo Finance v8 API via allorigins proxy for CORS
+    const indices = [
+      { id: 'spy', symbol: '^GSPC', name: 'S&P 500' },
+      { id: 'qqq', symbol: '^IXIC', name: 'NASDAQ' },
+      { id: 'dia', symbol: '^DJI', name: 'DOW' }
+    ];
+    for (const idx of indices) {
+      try {
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(idx.symbol)}?interval=1d&range=1d`;
+        const resp = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+        const data = await resp.json();
+        const meta = data.chart.result[0].meta;
+        const price = meta.regularMarketPrice;
+        const prevClose = meta.chartPreviousClose || meta.previousClose;
+        const change = ((price - prevClose) / prevClose * 100).toFixed(2);
+        document.getElementById('price-' + idx.id).textContent = price.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        const chEl = document.getElementById('change-' + idx.id);
+        chEl.textContent = (change >= 0 ? '+' : '') + change + '%';
+        chEl.className = 'ticker-change ' + (change > 0 ? 'ticker-up' : change < 0 ? 'ticker-down' : 'ticker-flat');
+      } catch(e) { /* silently fail individual tickers */ }
+    }
+    // BTC via CoinGecko
+    try {
+      const resp = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+      const data = await resp.json();
+      document.getElementById('price-btc').textContent = '$' + Math.round(data.bitcoin.usd).toLocaleString();
+      const ch = data.bitcoin.usd_24h_change.toFixed(2);
+      const chEl = document.getElementById('change-btc');
+      chEl.textContent = (ch >= 0 ? '+' : '') + ch + '%';
+      chEl.className = 'ticker-change ' + (ch > 0 ? 'ticker-up' : ch < 0 ? 'ticker-down' : 'ticker-flat');
+    } catch(e) {}
+    // Forex via exchangerate.host
+    try {
+      const resp = await fetch('https://api.exchangerate.host/latest?base=USD&symbols=EUR,GBP');
+      const data = await resp.json();
+      if (data.rates) {
+        document.getElementById('price-eurusd').textContent = (1 / data.rates.EUR).toFixed(4);
+        document.getElementById('price-gbpusd').textContent = (1 / data.rates.GBP).toFixed(4);
+      }
+    } catch(e) {}
+    // Watchlist
+    const watchlist = getWatchlist();
+    for (const sym of watchlist) {
+      try {
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=1d`;
+        const resp = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+        const data = await resp.json();
+        const meta = data.chart.result[0].meta;
+        const price = meta.regularMarketPrice;
+        const prevClose = meta.chartPreviousClose || meta.previousClose;
+        const change = ((price - prevClose) / prevClose * 100).toFixed(2);
+        const priceEl = document.getElementById('wl-price-' + sym);
+        const chEl = document.getElementById('wl-change-' + sym);
+        if (priceEl) priceEl.textContent = '$' + price.toFixed(2);
+        if (chEl) { chEl.textContent = (change >= 0 ? '+' : '') + change + '%'; chEl.className = change > 0 ? 'ticker-up' : change < 0 ? 'ticker-down' : 'ticker-flat'; }
+      } catch(e) {}
+    }
+  }
+
+  async function fetchFinanceNews() {
+    const el = document.getElementById('finance-news');
+    try {
+      const resp = await fetch('https://newsdata.io/api/1/news?apikey=pub_00000000000000000000000000000000&category=business&language=en&country=us');
+      const data = await resp.json();
+      if (data.results && data.results.length) {
+        el.innerHTML = data.results.slice(0, 8).map(a => `<div class="news-item" onclick="window.open('${a.link}','_blank')">
+          <div class="news-source">${esc(a.source_id || 'News')}</div>
+          <div class="news-title">${esc(a.title)}</div>
+          <div class="news-time">${a.pubDate ? new Date(a.pubDate).toLocaleDateString() : ''}</div>
+        </div>`).join('');
+        return;
+      }
+    } catch(e) {}
+    // Fallback: show static placeholder
+    el.innerHTML = `
+      <div class="news-item"><div class="news-source">Markets</div><div class="news-title">Connect FT.com API key for premium financial news</div><div class="news-time">Configure below</div></div>
+      <div class="news-item"><div class="news-source">Tip</div><div class="news-title">Market data refreshes each time you open Finance</div><div class="news-time">Auto-refresh</div></div>`;
+  }
+
+  renderWatchlist();
+  // Fetch market data when Finance page is shown (lazy load)
+  let _marketLoaded = false;
+  const _origShowPage = showPage;
+  showPage = function(id, btn) {
+    _origShowPage(id, btn);
+    if (id === 'finance' && !_marketLoaded) { _marketLoaded = true; fetchMarketData(); fetchFinanceNews(); }
+    if (id === 'wine') { renderWineTable(); updateWineStats(); }
+  };
 
   // Checklist persistence
   function toggleCheck(el) {
