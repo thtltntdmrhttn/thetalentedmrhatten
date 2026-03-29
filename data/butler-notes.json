@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "type": "summary",
+    "text": "Installed HACS v2.0.5 on Home Assistant. Restart triggered to activate. You can now add custom integrations like Mushroom cards, Bubble card, card-mod, and Adaptive Lighting from the HACS store in Settings > Devices & Services > HACS.",
+    "time": "2026-03-28T23:50:00Z",
+    "read": false
+  },
+  {
+    "id": 2,
+    "type": "summary",
+    "text": "Session 7 complete: Built Wine Cellar, Finance, and Reminders pages. Landing page redesigned with Art Nouveau aesthetic. Cloudflare Access now requires OTP every visit. Radio automations confirmed targeting stairs speaker. Butler skill created. Dashboard redesigned as welcome page with weather.",
+    "time": "2026-03-28T23:55:00Z",
+    "read": false
+  },
+  {
+    "id": 3,
+    "type": "reminder",
+    "text": "Cloudflare Access is now open to all emails (OTP still required). Ask your wife to try logging in again \u2014 she should get through and see the access request form.",
+    "time": "2026-03-28T23:56:00Z",
+    "read": false
+  }
+]

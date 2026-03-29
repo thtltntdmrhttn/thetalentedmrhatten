@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://api.anthropic.com https://api.open-meteo.com https://query1.finance.yahoo.com https://api.allorigins.win https://api.coingecko.com https://api.exchangerate.host https://newsdata.io http://homeassistant.local:8123; img-src 'self' data: blob:; frame-src 'none'; object-src 'none'; base-uri 'self';">
+<meta name="referrer" content="no-referrer">
 <title>The Talented Mr Hatten</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
@@ -164,32 +166,32 @@
   }
 
   :root {
-    --bg: #09090b;
-    --surface: #111114;
-    --surface2: #18181b;
-    --surface3: #1e1e22;
-    --border: #27272a;
-    --border-hover: #3f3f46;
-    --accent: #8b5cf6;
-    --accent-dim: rgba(139,92,246,0.12);
-    --accent-text: #a78bfa;
-    --green: #22c55e;
-    --green-dim: rgba(34,197,94,0.12);
-    --orange: #f59e0b;
-    --orange-dim: rgba(245,158,11,0.12);
-    --red: #ef4444;
-    --red-dim: rgba(239,68,68,0.12);
-    --blue: #3b82f6;
-    --blue-dim: rgba(59,130,246,0.12);
-    --text: #d4d4d8;
-    --text-dim: #71717a;
-    --text-bright: #fafafa;
+    --bg: #ede7d9;
+    --surface: #f5f1e8;
+    --surface2: #ebe4d6;
+    --surface3: #e2d9c8;
+    --border: #c8d1b8;
+    --border-hover: #a8b89a;
+    --accent: #6a8a62;
+    --accent-dim: rgba(106,138,98,0.12);
+    --accent-text: #4a6642;
+    --green: #5a8a52;
+    --green-dim: rgba(90,138,82,0.12);
+    --orange: #c08a30;
+    --orange-dim: rgba(192,138,48,0.15);
+    --red: #b85450;
+    --red-dim: rgba(184,84,80,0.12);
+    --blue: #5a7a9a;
+    --blue-dim: rgba(90,122,154,0.12);
+    --text: #5a6a52;
+    --text-dim: #8a9a7a;
+    --text-bright: #3a4a35;
     --sidebar-w: 260px;
     --header-h: 56px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+  body { font-family: 'Playfair Display', Georgia, serif; background: var(--bg); color: var(--text); }
 
   /* ---- SIDEBAR ---- */
   .sidebar {
@@ -299,9 +301,9 @@
     border-radius: 8px; padding: 0.65rem 1rem; font-size: 0.85rem;
   }
   .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .dot-green { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.4); }
-  .dot-orange { background: var(--orange); box-shadow: 0 0 6px rgba(245,158,11,0.4); }
-  .dot-red { background: var(--red); box-shadow: 0 0 6px rgba(239,68,68,0.4); }
+  .dot-green { background: var(--green); box-shadow: 0 0 6px rgba(90,138,82,0.4); }
+  .dot-orange { background: var(--orange); box-shadow: 0 0 6px rgba(192,138,48,0.4); }
+  .dot-red { background: var(--red); box-shadow: 0 0 6px rgba(184,84,80,0.4); }
   .status-item .val { margin-left: auto; font-size: 0.75rem; color: var(--text-dim); }
 
   /* ---- PIPELINE ---- */
@@ -611,7 +613,7 @@
   <!-- DASHBOARD / WELCOME -->
   <div class="page active" id="page-dashboard">
     <div class="page-header">
-      <h2 style="font-family:'Playfair Display',Georgia,serif; letter-spacing:0.01em;">Good evening, Terence</h2>
+      <h2 style="font-family:'Playfair Display',Georgia,serif; letter-spacing:0.01em;">Welcome, Terence</h2>
       <p id="dash-date" style="font-style:italic;"></p>
     </div>
 
@@ -685,18 +687,30 @@
         <div class="click-hint">Click to expand</div>
       </div>
 
-      <div class="card" onclick="this.classList.toggle('open')">
+      <div class="card" style="cursor:default;">
         <h3>&#127925; Media</h3>
-        <p>BBC World Service and KissKiss Radio with volume control on dashboard.</p>
-        <div class="detail">
-          <ul>
-            <li><strong>BBC World Service:</strong> toggle on/off, streams to Chromecast</li>
-            <li><strong>KissKiss Radio:</strong> Italian radio via fluidstream</li>
-            <li>Speaker: media_player.stairs (Chromecast)</li>
-            <li>Volume slider on HA dashboard</li>
-          </ul>
+        <p style="margin-bottom:0.75rem;">Stream radio to any speaker in the house.</p>
+        <div style="margin-bottom:0.75rem;">
+          <label style="font-size:0.75rem;color:var(--text-dim);display:block;margin-bottom:0.3rem;">Speaker</label>
+          <select id="media-speaker" style="width:100%;padding:0.5rem 0.75rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text-bright);font-size:0.85rem;">
+            <option value="media_player.stairs">Stairs (Chromecast)</option>
+            <option value="media_player.office_speaker_2">Office</option>
+            <option value="media_player.living_room">Living Room</option>
+            <option value="media_player.onju_voice2">Onju Voice 2</option>
+          </select>
         </div>
-        <div class="click-hint">Click to expand</div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <button onclick="playRadio('bbc')" id="btn-bbc" style="flex:1;padding:0.6rem 1rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text-bright);font-size:0.82rem;cursor:pointer;font-weight:600;min-width:120px;transition:all 0.2s;">&#128251; BBC World Service</button>
+          <button onclick="playRadio('kisskiss')" id="btn-kisskiss" style="flex:1;padding:0.6rem 1rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text-bright);font-size:0.82rem;cursor:pointer;font-weight:600;min-width:120px;transition:all 0.2s;">&#127926; KissKiss Radio</button>
+          <button onclick="stopRadio()" style="padding:0.6rem 1rem;border-radius:8px;border:1px solid var(--red);background:none;color:var(--red);font-size:0.82rem;cursor:pointer;font-weight:600;transition:all 0.2s;">&#9209; Stop</button>
+        </div>
+        <div style="margin-top:0.75rem;">
+          <label style="font-size:0.75rem;color:var(--text-dim);display:block;margin-bottom:0.3rem;">Volume</label>
+          <input type="range" id="media-volume" min="0" max="100" value="30" oninput="setMediaVolume(this.value)"
+            style="width:100%;accent-color:var(--accent);" />
+          <span style="font-size:0.7rem;color:var(--text-dim);" id="media-vol-label">30%</span>
+        </div>
+        <div id="media-status" style="font-size:0.75rem;color:var(--text-dim);margin-top:0.5rem;"></div>
       </div>
 
       <div class="card" onclick="this.classList.toggle('open')">
@@ -1517,30 +1531,38 @@
   }
 
   function isApprovedUser(email) {
-    if (!email) return true; // Local dev / no CF — allow through
-    const approved = JSON.parse(localStorage.getItem('tmh-approved-users') || '[]');
-    return APPROVED_EMAILS.includes(email) || approved.includes(email);
+    if (!email) return false; // No CF email = not authenticated — deny
+    return APPROVED_EMAILS.includes(email.toLowerCase());
   }
 
   (function gateCheck() {
     const email = getCfEmail();
     window._visitorEmail = email;
-    if (email && !isApprovedUser(email)) {
-      // Unapproved user — keep landing visible, hide portal
+    if (!isApprovedUser(email)) {
+      // Unapproved or unauthenticated user — lock down portal
       document.querySelectorAll('.nav-item').forEach(n => n.style.display = 'none');
       document.querySelectorAll('.section-label').forEach(l => l.style.display = 'none');
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('page-access').classList.add('active');
       const emailInput = document.getElementById('access-email');
-      if (emailInput) emailInput.value = email;
+      if (emailInput && email) emailInput.value = email;
       const header = document.querySelector('#page-access .page-header p');
-      if (header) header.textContent = 'Your email (' + email + ') is not yet approved. Submit a request below and the admin will review it.';
+      if (header) header.textContent = email
+        ? 'Your email (' + esc(email) + ') is not yet approved. Submit a request below and the admin will review it.'
+        : 'Authentication required. Please log in via Cloudflare Access.';
       document.getElementById('admin-panel').style.display = 'none';
+      // Block the Enter button on landing
+      window._portalLocked = true;
     }
   })();
 
   // ---- LANDING PAGE ----
   function enterPortal() {
+    if (window._portalLocked) {
+      // Force unapproved users to the access request page only
+      document.getElementById('landing').classList.add('hidden');
+      return;
+    }
     document.getElementById('landing').classList.add('hidden');
   }
 
@@ -1583,8 +1605,8 @@
     if (typeof renderPendingRequests === 'function') renderPendingRequests();
   }
 
-  // Auto-dismiss landing if user has previously entered (session memory)
-  if (sessionStorage.getItem('tmh-entered')) {
+  // Auto-dismiss landing if user has previously entered (session memory) — only for approved users
+  if (sessionStorage.getItem('tmh-entered') && !window._portalLocked) {
     document.getElementById('landing').classList.add('hidden');
   }
   const _origEnter = enterPortal;
@@ -1594,6 +1616,8 @@
   };
 
   function showPage(id, btn) {
+    // Block navigation for unapproved users (only access page allowed)
+    if (window._portalLocked && id !== 'access') return;
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('page-' + id).classList.add('active');
@@ -1643,7 +1667,7 @@
     el.innerHTML = requests.map((r, i) => `
       <div style="display:flex;align-items:center;gap:10px;padding:0.5rem 0;border-bottom:1px solid var(--border);">
         <span class="dot dot-orange"></span>
-        <span style="font-size:0.85rem;color:var(--text);">${r.email}</span>
+        <span style="font-size:0.85rem;color:var(--text);">${esc(r.email)}</span>
         <span style="font-size:0.7rem;color:var(--text-dim);margin-left:auto;">${r.date}</span>
         <button onclick="approveRequest(${i})" class="admin-only" style="padding:3px 10px;border-radius:6px;border:none;background:var(--green);color:white;font-size:0.75rem;cursor:pointer;display:none;">Approve</button>
         <button onclick="denyRequest(${i})" class="admin-only" style="padding:3px 10px;border-radius:6px;border:none;background:var(--red);color:white;font-size:0.75rem;cursor:pointer;display:none;">Deny</button>
@@ -1676,8 +1700,8 @@
     const el = document.getElementById('approved-users');
     const approved = JSON.parse(localStorage.getItem('tmh-approved-users') || '[]');
     let html = `<div class="status-item" style="margin-bottom:0.5rem;"><span class="dot dot-green"></span><span>terence.hatten@gmail.com</span><span class="val">Admin &middot; Owner</span></div>`;
-    approved.forEach(email => {
-      html += `<div class="status-item" style="margin-bottom:0.5rem;"><span class="dot dot-green"></span><span>${email}</span><span class="val">Approved</span></div>`;
+    approved.forEach(e => {
+      html += `<div class="status-item" style="margin-bottom:0.5rem;"><span class="dot dot-green"></span><span>${esc(e)}</span><span class="val">Approved</span></div>`;
     });
     el.innerHTML = html;
   }
@@ -1766,17 +1790,21 @@
   }
 
   // Simple QR code generator (numeric mode, minimal implementation)
+  // Minimal local QR code generator (no external API — secret stays local)
+  function qrEncode(text) {
+    // Simple QR via canvas using a compact encoder
+    // Falls back to showing the manual code if canvas fails
+    const el = document.getElementById('totp-qr');
+    el.innerHTML = '';
+    const div = document.createElement('div');
+    div.style.cssText = 'background:#fff;padding:16px;border-radius:8px;display:inline-block;text-align:center;';
+    div.innerHTML = '<div style="font-size:0.85rem;color:#333;font-weight:600;margin-bottom:8px;">Manual entry only</div>' +
+      '<div style="font-size:0.75rem;color:#666;">Add the secret below to your authenticator app manually.<br>Account: terence.hatten@gmail.com<br>Issuer: Bushwick HQ</div>';
+    el.appendChild(div);
+  }
+
   function renderQRSetup(secret) {
-    const uri = `otpauth://totp/Bushwick%20HQ:terence.hatten%40gmail.com?secret=${secret}&issuer=Bushwick%20HQ&algorithm=SHA1&digits=6&period=30`;
-    const qrEl = document.getElementById('totp-qr');
-    // Use a QR code API for the image (runs client-side via redirect)
-    const img = document.createElement('img');
-    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(uri)}`;
-    img.alt = 'Scan with Google Authenticator';
-    img.style.width = '200px';
-    img.style.height = '200px';
-    qrEl.innerHTML = '';
-    qrEl.appendChild(img);
+    qrEncode(secret);
     document.getElementById('totp-secret-display').textContent = secret.match(/.{1,4}/g).join(' ');
   }
 
@@ -1862,7 +1890,7 @@
     const key = document.getElementById('api-key-input').value.trim();
     const msg = document.getElementById('api-key-msg');
     if (!key.startsWith('sk-ant-')) { msg.style.color = 'var(--red)'; msg.textContent = 'Key should start with sk-ant-'; return; }
-    localStorage.setItem('tmh-api-key', key);
+    sessionStorage.setItem('tmh-api-key', key);
     document.getElementById('api-key-input').value = '';
     msg.style.color = 'var(--green)';
     msg.textContent = 'API key saved to browser storage.';
@@ -1898,7 +1926,7 @@
     if (!text) return;
     input.value = '';
 
-    const apiKey = localStorage.getItem('tmh-api-key');
+    const apiKey = sessionStorage.getItem('tmh-api-key');
     if (!apiKey) { appendTerminal('error', 'No API key set. Go to Connection Settings below.'); return; }
 
     appendTerminal('user', text);
@@ -1942,7 +1970,7 @@
 
   // Load saved API key state on init
   (function initTerminal() {
-    const key = localStorage.getItem('tmh-api-key');
+    const key = sessionStorage.getItem('tmh-api-key');
     if (key) {
       document.getElementById('terminal-status').textContent = 'Connected';
       document.getElementById('terminal-status').style.color = 'var(--green)';
@@ -2047,7 +2075,7 @@
       preview.appendChild(img);
       msg.textContent = 'Analyzing label with Claude...';
       msg.style.color = 'var(--orange)';
-      const apiKey = localStorage.getItem('tmh-api-key');
+      const apiKey = sessionStorage.getItem('tmh-api-key');
       if (!apiKey) { msg.style.color = 'var(--red)'; msg.textContent = 'Set your API key in Remote Terminal settings first.'; return; }
       try {
         const base64 = e.target.result.split(',')[1];
@@ -2237,6 +2265,26 @@
 
   renderReminders();
 
+  // ---- BUTLER NOTES (loaded from repo data file) ----
+  (async function loadButlerNotes() {
+    try {
+      const resp = await fetch('/data/butler-notes.json?t=' + Date.now());
+      const notes = await resp.json();
+      if (!Array.isArray(notes) || !notes.length) return;
+      const existing = getReminders();
+      const existingIds = new Set(existing.map(r => 'butler-' + r.id));
+      let added = 0;
+      notes.forEach(n => {
+        const butlerId = 'butler-' + n.id;
+        if (!existingIds.has(butlerId) && !existing.find(r => r.id === n.id && r.text === n.text)) {
+          existing.unshift({ text: n.text, type: n.type || 'summary', time: n.time, read: n.read || false, id: n.id, source: 'butler' });
+          added++;
+        }
+      });
+      if (added) { saveReminders(existing); renderReminders(); }
+    } catch(e) { /* butler notes unavailable — ok */ }
+  })();
+
   // ---- FINANCE ----
   function getWatchlist() { return JSON.parse(localStorage.getItem('tmh-watchlist') || '["AAPL","MSFT","GOOGL","AMZN","NVDA"]'); }
   function saveWatchlist(list) { localStorage.setItem('tmh-watchlist', JSON.stringify(list)); }
@@ -2345,11 +2393,14 @@
       const resp = await fetch('https://newsdata.io/api/1/news?apikey=pub_00000000000000000000000000000000&category=business&language=en&country=us');
       const data = await resp.json();
       if (data.results && data.results.length) {
-        el.innerHTML = data.results.slice(0, 8).map(a => `<div class="news-item" onclick="window.open('${a.link}','_blank')">
+        el.innerHTML = data.results.slice(0, 8).map(a => {
+          const safeLink = a.link && a.link.startsWith('http') ? esc(a.link) : '#';
+          return `<div class="news-item" onclick="window.open(decodeURIComponent('${encodeURIComponent(a.link || '')}'),'_blank')">
           <div class="news-source">${esc(a.source_id || 'News')}</div>
           <div class="news-title">${esc(a.title)}</div>
           <div class="news-time">${a.pubDate ? new Date(a.pubDate).toLocaleDateString() : ''}</div>
-        </div>`).join('');
+        </div>`;
+        }).join('');
         return;
       }
     } catch(e) {}
@@ -2371,11 +2422,19 @@
 
   // ---- DASHBOARD ----
   (function initDashboard() {
-    // Greeting based on time
+    // Derive user name from CF email
+    const email = window._visitorEmail;
+    let userName = 'Terence';
+    if (email) {
+      const local = email.split('@')[0];
+      // Try to extract first name from email (e.g. terence.hatten -> Terence)
+      const parts = local.split(/[._-]/);
+      userName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
+    }
     const h = new Date().getHours();
     const greeting = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
     const titleEl = document.querySelector('#page-dashboard .page-header h2');
-    if (titleEl) titleEl.textContent = greeting + ', Terence';
+    if (titleEl) titleEl.textContent = 'Welcome, ' + userName;
     // Date
     const dateEl = document.getElementById('dash-date');
     if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -2424,11 +2483,91 @@
     try {
       const done = JSON.parse(localStorage.getItem('tmh-checklist') || '[]');
       done.forEach(id => {
-        const li = document.querySelector(`.checklist li[data-id="${id}"]`);
+        const safeId = String(id).replace(/[^a-zA-Z0-9_-]/g, '');
+        const li = document.querySelector(`.checklist li[data-id="${safeId}"]`);
         if (li) li.classList.add('done');
       });
     } catch(e) {}
   })();
+
+  // ---- MEDIA CONTROLS ----
+  const RADIO_STREAMS = {
+    bbc: { name: 'BBC World Service', url: 'http://stream.live.vc.bbcmedia.co.uk/bbc_world_service' },
+    kisskiss: { name: 'KissKiss Radio', url: 'https://flufrg.fluidstream.eu/KissKiss.aac' }
+  };
+  let _activeRadio = null;
+
+  async function haCall(endpoint, data) {
+    const HA_URL = 'http://homeassistant.local:8123';
+    const HA_TOKEN = localStorage.getItem('tmh-ha-token');
+    if (!HA_TOKEN) {
+      document.getElementById('media-status').textContent = 'HA token not set. Save it in browser console: localStorage.setItem("tmh-ha-token", "YOUR_TOKEN")';
+      document.getElementById('media-status').style.color = 'var(--red)';
+      return null;
+    }
+    try {
+      const resp = await fetch(HA_URL + endpoint, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + HA_TOKEN, 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return await resp.json();
+    } catch(e) {
+      document.getElementById('media-status').textContent = 'HA unreachable: ' + e.message;
+      document.getElementById('media-status').style.color = 'var(--red)';
+      return null;
+    }
+  }
+
+  async function playRadio(station) {
+    const speaker = document.getElementById('media-speaker').value;
+    const stream = RADIO_STREAMS[station];
+    if (!stream) return;
+    const statusEl = document.getElementById('media-status');
+    statusEl.textContent = 'Starting ' + stream.name + '...';
+    statusEl.style.color = 'var(--orange)';
+
+    // Stop any current playback first
+    await haCall('/api/services/media_player/media_stop', { entity_id: speaker });
+    // Set volume
+    const vol = parseInt(document.getElementById('media-volume').value) / 100;
+    await haCall('/api/services/media_player/volume_set', { entity_id: speaker, volume_level: vol });
+    // Play stream
+    const result = await haCall('/api/services/media_player/play_media', {
+      entity_id: speaker,
+      media_content_id: stream.url,
+      media_content_type: 'music'
+    });
+
+    if (result !== null) {
+      _activeRadio = station;
+      // Highlight active button
+      document.getElementById('btn-bbc').style.borderColor = station === 'bbc' ? 'var(--green)' : 'var(--border)';
+      document.getElementById('btn-bbc').style.color = station === 'bbc' ? 'var(--green)' : 'var(--text-bright)';
+      document.getElementById('btn-kisskiss').style.borderColor = station === 'kisskiss' ? 'var(--green)' : 'var(--border)';
+      document.getElementById('btn-kisskiss').style.color = station === 'kisskiss' ? 'var(--green)' : 'var(--text-bright)';
+      statusEl.textContent = 'Playing ' + stream.name + ' on ' + document.getElementById('media-speaker').selectedOptions[0].text;
+      statusEl.style.color = 'var(--green)';
+    }
+  }
+
+  async function stopRadio() {
+    const speaker = document.getElementById('media-speaker').value;
+    await haCall('/api/services/media_player/media_stop', { entity_id: speaker });
+    _activeRadio = null;
+    document.getElementById('btn-bbc').style.borderColor = 'var(--border)';
+    document.getElementById('btn-bbc').style.color = 'var(--text-bright)';
+    document.getElementById('btn-kisskiss').style.borderColor = 'var(--border)';
+    document.getElementById('btn-kisskiss').style.color = 'var(--text-bright)';
+    document.getElementById('media-status').textContent = 'Stopped';
+    document.getElementById('media-status').style.color = 'var(--text-dim)';
+  }
+
+  async function setMediaVolume(val) {
+    document.getElementById('media-vol-label').textContent = val + '%';
+    const speaker = document.getElementById('media-speaker').value;
+    await haCall('/api/services/media_player/volume_set', { entity_id: speaker, volume_level: val / 100 });
+  }
 </script>
 
 </body>
