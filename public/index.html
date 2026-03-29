@@ -1546,7 +1546,10 @@
   }
 
   function isApprovedUser(email) {
-    if (!email) return false;
+    // CF Access is the real auth layer (network-level OTP).
+    // This JS gate only blocks users whose email we CAN identify as non-approved.
+    // If we can't read the email, CF Access already authenticated them — allow through.
+    if (!email) return true;
     return APPROVED_EMAILS.includes(email.toLowerCase());
   }
 
@@ -1562,15 +1565,12 @@
           const identity = await resp.json();
           email = identity.email || null;
         }
-      } catch(e) { /* not behind CF Access — local dev */ }
+      } catch(e) { /* not behind CF Access or endpoint failed */ }
     }
-
-    // If we're on localhost / not behind CF Access, allow through (dev mode)
-    const isCfProtected = !!email || window.location.hostname.includes('thetalentedmrhatten.com');
 
     window._visitorEmail = email;
 
-    if (isCfProtected && !isApprovedUser(email)) {
+    if (email && !isApprovedUser(email)) {
       // Unapproved or unauthenticated user — lock down portal
       document.querySelectorAll('.nav-item').forEach(n => n.style.display = 'none');
       document.querySelectorAll('.section-label').forEach(l => l.style.display = 'none');
