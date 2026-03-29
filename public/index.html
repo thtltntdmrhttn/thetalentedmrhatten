@@ -1088,7 +1088,7 @@
             <li><strong>Secret storage:</strong> Base32-encoded secret stored in <code>localStorage</code> under key <code>tmh-totp-secret</code>. Generated client-side using <code>crypto.getRandomValues()</code> — never sent to any server</li>
             <li><strong>Verification window:</strong> Accepts codes from t-1 to t+1 (90-second window) to account for clock drift between phone and browser</li>
             <li><strong>Rate limiting:</strong> 5 failed attempts triggers a 60-second lockout. Counter resets on successful auth</li>
-            <li><strong>Session scope:</strong> Verification stored in <code>sessionStorage</code> (<code>tmh-totp-verified</code>) — closing the browser tab clears it, requiring re-authentication</li>
+            <li><strong>Session scope:</strong> Verification stored as an HMAC-signed token in <code>sessionStorage</code> — derived from the TOTP secret, session ID, and date. Cannot be forged without the secret. Closing the tab clears it, requiring re-authentication</li>
             <li><strong>Setup:</strong> First-time users scan a QR code (otpauth:// URI) with Google Authenticator. Issuer: "Bushwick HQ"</li>
           </ul>
         </div>
@@ -1919,9 +1919,8 @@
       const resp = await fetch('/data/approved-users.json?t=' + Date.now());
       if (resp.ok) _approvedUsers = await resp.json();
     } catch(e) {}
-    // Merge any locally-approved users (admin can approve on-device before push)
-    const local = JSON.parse(localStorage.getItem('tmh-approved-users') || '[]');
-    local.forEach(e => { if (!_approvedUsers.includes(e)) _approvedUsers.push(e); });
+    // SECURITY: Only load from repo-backed JSON. localStorage is NOT trusted for the approved list.
+    // Admin approvals go to localStorage temporarily but are only effective after repo push + deploy.
   }
 
   function isApproved(email) {
@@ -2065,28 +2064,53 @@
     // TOTP gate is already visible — user needs to enter code
   }
 
-  // Auto-dismiss landing + TOTP gate if already verified this session
-  if (sessionStorage.getItem('tmh-entered') && sessionStorage.getItem('tmh-totp-verified')) {
-    document.getElementById('landing').classList.add('hidden');
-    document.getElementById('portal-totp-gate').style.display = 'none';
-  } else if (sessionStorage.getItem('tmh-entered')) {
-    document.getElementById('landing').classList.add('hidden');
-    // TOTP gate still shows
+  // HMAC token verification — re-derives the token and compares
+  async function verifyTotpToken() {
+    const token = sessionStorage.getItem('tmh-totp-verified');
+    if (!token) return false;
+    const secret = localStorage.getItem('tmh-totp-secret');
+    const sessionId = sessionStorage.getItem('tmh-session-id');
+    if (!secret || !sessionId) return false;
+    try {
+      const tokenData = new TextEncoder().encode(secret + sessionId + new Date().toISOString().slice(0, 10));
+      const tokenKey = await crypto.subtle.importKey('raw', tokenData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+      const sig = await crypto.subtle.sign('HMAC', tokenKey, tokenData);
+      const expected = btoa(String.fromCharCode(...new Uint8Array(sig))).slice(0, 32);
+      return token === expected;
+    } catch(e) { return false; }
   }
 
-  // ---- GLOBAL TOTP GATE ----
-  if (sessionStorage.getItem('tmh-totp-verified')) {
-    document.getElementById('portal-totp-gate').style.display = 'none';
-  } else {
-    const gateSecret = localStorage.getItem('tmh-totp-secret');
-    if (!gateSecret) {
-      // Show TOTP setup for first-time approved user
-      const newSecret = generateSecret();
-      localStorage.setItem('tmh-totp-secret-pending', newSecret);
-      document.getElementById('gate-totp-setup').style.display = 'block';
-      renderGateQR(newSecret);
+  // Auto-dismiss landing + TOTP gate if already verified this session
+  (async function checkSessionRestore() {
+    const verified = await verifyTotpToken();
+    if (sessionStorage.getItem('tmh-entered') && verified) {
+      document.getElementById('landing').classList.add('hidden');
+      document.getElementById('portal-totp-gate').style.display = 'none';
+    } else if (sessionStorage.getItem('tmh-entered')) {
+      document.getElementById('landing').classList.add('hidden');
+      // TOTP gate still shows — token invalid or missing
     }
-  }
+  })();
+
+  // ---- GLOBAL TOTP GATE ----
+  (async function initGate() {
+    const verified = await verifyTotpToken();
+    if (verified) {
+      document.getElementById('portal-totp-gate').style.display = 'none';
+    } else {
+      // Clear any forged/stale tokens
+      sessionStorage.removeItem('tmh-totp-verified');
+      sessionStorage.removeItem('tmh-totp-token');
+      const gateSecret = localStorage.getItem('tmh-totp-secret');
+      if (!gateSecret) {
+        // Show TOTP setup for first-time approved user
+        const newSecret = generateSecret();
+        localStorage.setItem('tmh-totp-secret-pending', newSecret);
+        document.getElementById('gate-totp-setup').style.display = 'block';
+        renderGateQR(newSecret);
+      }
+    }
+  })();
 
   function renderGateQR(secret) {
     const email = window._visitorEmail || 'user';
@@ -2096,6 +2120,8 @@
     document.getElementById('gate-totp-secret-display').textContent = secret.match(/.{1,4}/g).join(' ');
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
+    script.integrity = 'sha384-lQXOAyZwHXE55JFyrOMB7nY2Wv+m5ZWNtJcHrd1rceRQXAYNLak8ukN5TjBTcIwz';
+    script.crossOrigin = 'anonymous';
     script.onload = function() {
       try {
         const qr = qrcode(0, 'M');
@@ -2151,7 +2177,16 @@
     }
     const valid = await verifyTOTP(secret, code);
     if (valid) {
-      sessionStorage.setItem('tmh-totp-verified', '1');
+      // SECURITY: Store a signed verification token, not a simple flag.
+      // Token = HMAC(secret, session_id + date) — can't be forged without the TOTP secret.
+      const sessionId = sessionStorage.getItem('tmh-session-id') || (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36));
+      sessionStorage.setItem('tmh-session-id', sessionId);
+      const tokenData = new TextEncoder().encode(secret + sessionId + new Date().toISOString().slice(0, 10));
+      const tokenKey = await crypto.subtle.importKey('raw', tokenData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+      const sig = await crypto.subtle.sign('HMAC', tokenKey, tokenData);
+      const token = btoa(String.fromCharCode(...new Uint8Array(sig))).slice(0, 32);
+      sessionStorage.setItem('tmh-totp-verified', token);
+      sessionStorage.setItem('tmh-totp-token', token);
       document.getElementById('portal-totp-gate').style.display = 'none';
       _gateFailedAttempts = 0;
       const isNew = !checkKnownDevice();
@@ -2244,26 +2279,33 @@
     if (window._adminUnlocked) document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'inline-block');
   }
 
+  // SECURITY: Re-verify admin from CF JWT cookie on every privileged action
+  function verifyAdminFromJWT() {
+    const email = getCfEmail();
+    if (!email || email.toLowerCase() !== ADMIN_EMAIL) {
+      auditLog('admin_denied', 'JWT check failed: ' + (email || 'no cookie'));
+      alert('Admin access denied. Your identity could not be verified.');
+      return false;
+    }
+    return true;
+  }
+
   function approveRequest(idx) {
-    if (!window._isAdmin) { alert('Admin only.'); return; }
+    if (!verifyAdminFromJWT()) return;
     const requests = JSON.parse(localStorage.getItem('tmh-access-requests') || '[]');
     const pending = requests.filter(r => r.status === 'pending');
     const email = pending[idx].email;
-    // Add to local approved list (will be synced to repo by admin)
-    const approved = JSON.parse(localStorage.getItem('tmh-approved-users') || '[]');
-    if (!approved.includes(email)) approved.push(email);
-    localStorage.setItem('tmh-approved-users', JSON.stringify(approved));
-    // Also add to runtime list
-    if (!_approvedUsers.includes(email)) _approvedUsers.push(email);
+    // NOTE: Approval is local only. User must be added to /data/approved-users.json
+    // in the repo and redeployed for the approval to take effect.
     pending[idx].status = 'approved';
     localStorage.setItem('tmh-access-requests', JSON.stringify(requests));
-    auditLog('user_approved', email);
+    auditLog('user_approved', email + ' (local only — needs repo push)');
     renderPendingRequests();
     renderApprovedUsers();
   }
 
   function denyRequest(idx) {
-    if (!window._isAdmin) { alert('Admin only.'); return; }
+    if (!verifyAdminFromJWT()) return;
     const requests = JSON.parse(localStorage.getItem('tmh-access-requests') || '[]');
     const pending = requests.filter(r => r.status === 'pending');
     auditLog('user_denied', pending[idx].email);
@@ -2283,12 +2325,8 @@
   }
 
   async function toggleAdminAuth() {
-    // Layer 4: Admin requires CF email match + fresh TOTP
-    if (!window._isAdmin) {
-      alert('Admin access is restricted to the site owner.');
-      auditLog('admin_denied', 'Non-admin attempted admin unlock: ' + (window._visitorEmail || 'unknown'));
-      return;
-    }
+    // Layer 4: Admin requires CF JWT email match + fresh TOTP
+    if (!verifyAdminFromJWT()) return;
     const code = prompt('Enter authenticator code to unlock admin:');
     if (code === null) return;
     const secret = localStorage.getItem('tmh-totp-secret');
@@ -2330,6 +2368,7 @@
   }
 
   function clearAuditLog() {
+    if (!verifyAdminFromJWT()) return;
     if (!confirm('Clear all audit log entries?')) return;
     localStorage.removeItem('tmh-audit-log');
     _auditLog = [];
@@ -2348,6 +2387,7 @@
   }
 
   function clearKnownDevices() {
+    if (!verifyAdminFromJWT()) return;
     if (!confirm('This will require TOTP re-verification on all devices. Continue?')) return;
     localStorage.removeItem('tmh-known-devices');
     auditLog('devices_cleared', 'All known devices reset');
@@ -2355,8 +2395,9 @@
   }
 
   // Render on page load if admin
-  setTimeout(() => {
-    if (window._isAdmin && sessionStorage.getItem('tmh-totp-verified')) {
+  setTimeout(async () => {
+    const verified = await verifyTotpToken();
+    if (window._isAdmin && verified) {
       renderAuditLog();
       renderKnownDevices();
     }
@@ -2434,6 +2475,8 @@
     document.getElementById('totp-secret-display').textContent = secret.match(/.{1,4}/g).join(' ');
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
+    script.integrity = 'sha384-lQXOAyZwHXE55JFyrOMB7nY2Wv+m5ZWNtJcHrd1rceRQXAYNLak8ukN5TjBTcIwz';
+    script.crossOrigin = 'anonymous';
     script.onload = function() {
       try {
         const qr = qrcode(0, 'M');
