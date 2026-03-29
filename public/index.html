@@ -1546,14 +1546,31 @@
   }
 
   function isApprovedUser(email) {
-    if (!email) return false; // No CF email = not authenticated — deny
+    if (!email) return false;
     return APPROVED_EMAILS.includes(email.toLowerCase());
   }
 
-  (function gateCheck() {
-    const email = getCfEmail();
+  // Gate check — tries cookie first, then CF identity endpoint as fallback
+  (async function gateCheck() {
+    let email = getCfEmail();
+
+    // Fallback: if cookie unreadable, try CF Access identity endpoint
+    if (!email) {
+      try {
+        const resp = await fetch('/.cdn-cgi/access/get-identity');
+        if (resp.ok) {
+          const identity = await resp.json();
+          email = identity.email || null;
+        }
+      } catch(e) { /* not behind CF Access — local dev */ }
+    }
+
+    // If we're on localhost / not behind CF Access, allow through (dev mode)
+    const isCfProtected = !!email || window.location.hostname.includes('thetalentedmrhatten.com');
+
     window._visitorEmail = email;
-    if (!isApprovedUser(email)) {
+
+    if (isCfProtected && !isApprovedUser(email)) {
       // Unapproved or unauthenticated user — lock down portal
       document.querySelectorAll('.nav-item').forEach(n => n.style.display = 'none');
       document.querySelectorAll('.section-label').forEach(l => l.style.display = 'none');
@@ -1566,7 +1583,6 @@
         ? 'Your email (' + esc(email) + ') is not yet approved. Submit a request below and the admin will review it.'
         : 'Authentication required. Please log in via Cloudflare Access.';
       document.getElementById('admin-panel').style.display = 'none';
-      // Block the Enter button on landing
       window._portalLocked = true;
     }
   })();
