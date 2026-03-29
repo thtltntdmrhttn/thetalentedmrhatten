@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.anthropic.com https://api.open-meteo.com https://query1.finance.yahoo.com https://api.allorigins.win https://api.coingecko.com https://api.exchangerate.host https://newsdata.io http://homeassistant.local:8123; img-src 'self' data: blob:; frame-src 'none'; object-src 'none'; base-uri 'self';">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,400;1,6..96,500&display=swap" rel="stylesheet">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://api.anthropic.com https://api.open-meteo.com https://query1.finance.yahoo.com https://api.allorigins.win https://api.coingecko.com https://api.exchangerate.host https://newsdata.io http://homeassistant.local:8123; img-src 'self' data: blob:; frame-src 'none'; object-src 'none'; base-uri 'self';">
 <meta name="referrer" content="no-referrer">
 <title>The Talented Mr Hatten</title>
 <style>
@@ -29,7 +31,7 @@
   }
 
   .landing-mark {
-    font-family: Helvetica, Arial, sans-serif;
+    font-family: 'Bodoni Moda', Georgia, serif;
     font-size: 0.7rem;
     letter-spacing: 0.4em;
     text-transform: uppercase;
@@ -44,7 +46,7 @@
   .landing-ornament svg { width: 100px; height: auto; }
 
   .landing-title {
-    font-family: Helvetica, Arial, sans-serif;
+    font-family: 'Bodoni Moda', Georgia, serif;
     font-size: 2.4rem;
     font-weight: 700;
     color: #3a4a35;
@@ -54,7 +56,7 @@
   }
 
   .landing-subtitle {
-    font-family: Helvetica, Arial, sans-serif;
+    font-family: 'Bodoni Moda', Georgia, serif;
     font-size: 0.92rem;
     font-weight: 400;
     font-style: italic;
@@ -73,7 +75,7 @@
 
   .landing-btn {
     display: block; width: 260px; padding: 0.8rem 1.5rem;
-    font-family: Helvetica, Arial, sans-serif;
+    font-family: 'Bodoni Moda', Georgia, serif;
     font-size: 0.95rem; font-weight: 600; letter-spacing: 0.1em;
     border-radius: 3px; cursor: pointer; transition: all 0.3s;
     text-transform: uppercase;
@@ -104,7 +106,7 @@
   .landing-footer {
     position: absolute; bottom: 32px; left: 0; right: 0;
     text-align: center;
-    font-family: Helvetica, Arial, sans-serif;
+    font-family: 'Bodoni Moda', Georgia, serif;
     font-size: 0.7rem;
     font-style: italic;
     color: #b5ccaa;
@@ -125,26 +127,26 @@
     box-shadow: 0 12px 48px rgba(58,74,53,0.12);
   }
   .landing-modal-box h3 {
-    font-family: Helvetica, Arial, sans-serif;
+    font-family: 'Bodoni Moda', Georgia, serif;
     font-size: 1.3rem; font-weight: 600; color: #3a4a35;
     margin-bottom: 0.5rem;
   }
   .landing-modal-box p {
-    font-family: Helvetica, Arial, sans-serif;
+    font-family: 'Bodoni Moda', Georgia, serif;
     font-size: 0.88rem; color: #7a9470; margin-bottom: 1.5rem; line-height: 1.6;
   }
   .landing-modal-box input {
     width: 100%; padding: 0.7rem 0.75rem; border-radius: 3px;
     border: 1px solid #c8d8bc; background: #faf9f6;
     color: #3a4a35; font-size: 0.9rem; outline: none;
-    font-family: Helvetica, Arial, sans-serif;
+    font-family: 'Bodoni Moda', Georgia, serif;
   }
   .landing-modal-box input:focus { border-color: #8faa80; }
   .landing-modal-box input::placeholder { color: #b5ccaa; }
   .landing-modal-submit {
     width: 100%; padding: 0.7rem; margin-top: 0.75rem;
     border: 1px solid #6a8a62; background: #6a8a62;
-    color: #f2f0eb; font-family: Helvetica, Arial, sans-serif;
+    color: #f2f0eb; font-family: 'Bodoni Moda', Georgia, serif;
     font-size: 0.88rem; font-weight: 600; letter-spacing: 0.08em;
     text-transform: uppercase; border-radius: 3px; cursor: pointer;
     transition: all 0.25s;
@@ -156,7 +158,7 @@
     font-size: 1.2rem; cursor: pointer;
   }
   .landing-modal-close:hover { color: #6a8a62; }
-  #landing-request-msg { font-size: 0.8rem; margin-top: 0.75rem; min-height: 1.2em; font-family: Helvetica, Arial, sans-serif; }
+  #landing-request-msg { font-size: 0.8rem; margin-top: 0.75rem; min-height: 1.2em; font-family: 'Bodoni Moda', Georgia, serif; }
 
   @media (max-width: 768px) {
     .landing-title { font-size: 1.8rem; }
@@ -189,7 +191,7 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); }
+  body { font-family: 'Bodoni Moda', Georgia, serif; background: var(--bg); color: var(--text); }
 
   /* ---- SIDEBAR ---- */
   .sidebar {
