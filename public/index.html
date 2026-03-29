@@ -1545,55 +1545,22 @@
     } catch(e) { return null; }
   }
 
-  function isApprovedUser(email) {
-    // CF Access is the real auth layer (network-level OTP).
-    // This JS gate only blocks users whose email we CAN identify as non-approved.
-    // If we can't read the email, CF Access already authenticated them — allow through.
-    if (!email) return true;
-    return APPROVED_EMAILS.includes(email.toLowerCase());
-  }
-
-  // Gate check — tries cookie first, then CF identity endpoint as fallback
-  (async function gateCheck() {
+  // Auth: CF Access handles authentication at the network level (OTP).
+  // Terminal and admin panel have their own TOTP gates.
+  // Resolve visitor email for personalization (greeting, etc.)
+  (async function resolveVisitor() {
     let email = getCfEmail();
-
-    // Fallback: if cookie unreadable, try CF Access identity endpoint
     if (!email) {
       try {
         const resp = await fetch('/.cdn-cgi/access/get-identity');
-        if (resp.ok) {
-          const identity = await resp.json();
-          email = identity.email || null;
-        }
-      } catch(e) { /* not behind CF Access or endpoint failed */ }
+        if (resp.ok) { email = (await resp.json()).email || null; }
+      } catch(e) {}
     }
-
     window._visitorEmail = email;
-
-    if (email && !isApprovedUser(email)) {
-      // Unapproved or unauthenticated user — lock down portal
-      document.querySelectorAll('.nav-item').forEach(n => n.style.display = 'none');
-      document.querySelectorAll('.section-label').forEach(l => l.style.display = 'none');
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById('page-access').classList.add('active');
-      const emailInput = document.getElementById('access-email');
-      if (emailInput && email) emailInput.value = email;
-      const header = document.querySelector('#page-access .page-header p');
-      if (header) header.textContent = email
-        ? 'Your email (' + esc(email) + ') is not yet approved. Submit a request below and the admin will review it.'
-        : 'Authentication required. Please log in via Cloudflare Access.';
-      document.getElementById('admin-panel').style.display = 'none';
-      window._portalLocked = true;
-    }
   })();
 
   // ---- LANDING PAGE ----
   function enterPortal() {
-    if (window._portalLocked) {
-      // Force unapproved users to the access request page only
-      document.getElementById('landing').classList.add('hidden');
-      return;
-    }
     document.getElementById('landing').classList.add('hidden');
   }
 
@@ -1637,7 +1604,7 @@
   }
 
   // Auto-dismiss landing if user has previously entered (session memory) — only for approved users
-  if (sessionStorage.getItem('tmh-entered') && !window._portalLocked) {
+  if (sessionStorage.getItem('tmh-entered')) {
     document.getElementById('landing').classList.add('hidden');
   }
   const _origEnter = enterPortal;
@@ -1647,8 +1614,6 @@
   };
 
   function showPage(id, btn) {
-    // Block navigation for unapproved users (only access page allowed)
-    if (window._portalLocked && id !== 'access') return;
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('page-' + id).classList.add('active');
