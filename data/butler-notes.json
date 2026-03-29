@@ -33,5 +33,12 @@
     "text": "Session 8: Scraped 93 MWC wines (96 bottles) into data/wines.json. Built 3-tier security (CF Access + approved users + TOTP). Device fingerprinting and audit logging added. Deep technical descriptions on Voice, Devices, Security, Architecture pages. QR code for TOTP setup. CF Access session extended to 30 days.",
     "time": "2026-03-29T03:05:00Z",
     "read": false
+  },
+  {
+    "id": 6,
+    "type": "summary",
+    "text": "Session 9: Security hardening complete — HMAC-signed TOTP tokens (can't forge via console), JWT-verified admin actions, SRI-pinned CDN script, approved users localStorage attack fixed. CF security research done (WAF, rate limiting, geo-restriction, Workers audit proxy) — ready to implement next session. Night protocol scene still needs dead entity removal.",
+    "time": "2026-03-29T10:30:00Z",
+    "read": false
   }
 ]
