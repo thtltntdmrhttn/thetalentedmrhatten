@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,400;1,6..96,500&display=swap" rel="stylesheet">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://api.anthropic.com https://api.open-meteo.com https://query1.finance.yahoo.com https://api.allorigins.win https://api.coingecko.com https://api.exchangerate.host https://newsdata.io http://homeassistant.local:8123; img-src 'self' data: blob:; frame-src 'none'; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://api.anthropic.com https://api.open-meteo.com https://query1.finance.yahoo.com https://api.allorigins.win https://api.coingecko.com https://api.exchangerate.host https://newsdata.io http://homeassistant.local:8123; img-src 'self' data: blob:; frame-src 'none'; object-src 'none'; base-uri 'self';">
 <meta name="referrer" content="no-referrer">
 <title>The Talented Mr Hatten</title>
 <style>
@@ -603,6 +603,7 @@
     </button>
   </nav>
   <div class="sidebar-footer">
+    <a href="#" onclick="logoutPortal(); return false;" style="display:block;text-align:center;padding:0.5rem;margin-bottom:0.5rem;border-radius:8px;background:var(--surface3);color:var(--text);font-size:0.8rem;font-weight:600;text-decoration:none;cursor:pointer;transition:background 0.2s;">Log Out</a>
     v1.0 &mdash; Last sync: March 28, 2026
   </div>
 </aside>
@@ -1559,6 +1560,13 @@
     window._visitorEmail = email;
   })();
 
+  function logoutPortal() {
+    // Clear local state
+    sessionStorage.clear();
+    // CF Access logout endpoint revokes the session cookie
+    window.location.href = '/.cdn-cgi/access/logout';
+  }
+
   // ---- LANDING PAGE ----
   function enterPortal() {
     document.getElementById('landing').classList.add('hidden');
@@ -1785,13 +1793,12 @@
     return base32Encode(bytes);
   }
 
-  // QR code generator — uses qrcode.js CDN, falls back to manual entry
+  // QR code generator — loads qrcode-generator from jsdelivr CDN (allowed in CSP)
   function renderQRSetup(secret) {
     const uri = 'otpauth://totp/Bushwick%20HQ:terence.hatten%40gmail.com?secret=' + secret + '&issuer=Bushwick%20HQ&digits=6&period=30';
     const el = document.getElementById('totp-qr');
     el.innerHTML = '';
     document.getElementById('totp-secret-display').textContent = secret.match(/.{1,4}/g).join(' ');
-    // Load qrcode lib and render
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
     script.onload = function() {
@@ -1799,8 +1806,7 @@
         const qr = qrcode(0, 'M');
         qr.addData(uri);
         qr.make();
-        const img = qr.createImgTag(5, 8);
-        el.innerHTML = img;
+        el.innerHTML = qr.createImgTag(5, 8);
       } catch(e) {
         el.innerHTML = '<div style="font-size:0.75rem;color:#666;">QR failed — use the manual secret below.</div>';
       }
