@@ -1785,23 +1785,30 @@
     return base32Encode(bytes);
   }
 
-  // Simple QR code generator (numeric mode, minimal implementation)
-  // Minimal local QR code generator (no external API — secret stays local)
-  function qrEncode(text) {
-    // Simple QR via canvas using a compact encoder
-    // Falls back to showing the manual code if canvas fails
+  // QR code generator — uses qrcode.js CDN, falls back to manual entry
+  function renderQRSetup(secret) {
+    const uri = 'otpauth://totp/Bushwick%20HQ:terence.hatten%40gmail.com?secret=' + secret + '&issuer=Bushwick%20HQ&digits=6&period=30';
     const el = document.getElementById('totp-qr');
     el.innerHTML = '';
-    const div = document.createElement('div');
-    div.style.cssText = 'background:#fff;padding:16px;border-radius:8px;display:inline-block;text-align:center;';
-    div.innerHTML = '<div style="font-size:0.85rem;color:#333;font-weight:600;margin-bottom:8px;">Manual entry only</div>' +
-      '<div style="font-size:0.75rem;color:#666;">Add the secret below to your authenticator app manually.<br>Account: terence.hatten@gmail.com<br>Issuer: Bushwick HQ</div>';
-    el.appendChild(div);
-  }
-
-  function renderQRSetup(secret) {
-    qrEncode(secret);
     document.getElementById('totp-secret-display').textContent = secret.match(/.{1,4}/g).join(' ');
+    // Load qrcode lib and render
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
+    script.onload = function() {
+      try {
+        const qr = qrcode(0, 'M');
+        qr.addData(uri);
+        qr.make();
+        const img = qr.createImgTag(5, 8);
+        el.innerHTML = img;
+      } catch(e) {
+        el.innerHTML = '<div style="font-size:0.75rem;color:#666;">QR failed — use the manual secret below.</div>';
+      }
+    };
+    script.onerror = function() {
+      el.innerHTML = '<div style="font-size:0.75rem;color:#666;">QR failed to load — use the manual secret below.</div>';
+    };
+    document.head.appendChild(script);
   }
 
   function initTOTP() {
