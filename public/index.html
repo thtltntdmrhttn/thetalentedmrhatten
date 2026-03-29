@@ -1283,6 +1283,15 @@
       <button class="wine-tab" onclick="showWineTab('sync', this)">Import / Export</button>
     </div>
 
+    <!-- Quick Scan Button (always visible above tabs) -->
+    <div style="margin-bottom: 1rem; display: flex; gap: 0.75rem; align-items: center;">
+      <label for="wine-quick-scan" style="display:flex;align-items:center;gap:8px;padding:0.7rem 1.5rem;border-radius:8px;border:2px solid var(--accent);background:var(--accent-dim);color:var(--accent-text);font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.2s;">
+        &#128247; Scan Wine Label
+      </label>
+      <input type="file" id="wine-quick-scan" accept="image/*" capture="environment" style="display:none;" onchange="handleWinePhoto(this)" />
+      <span style="font-size:0.78rem;color:var(--text-dim);">Take a photo or upload &mdash; Claude identifies the wine and adds it</span>
+    </div>
+
     <!-- Collection Tab -->
     <div id="wine-tab-collection">
       <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
@@ -1371,12 +1380,18 @@
     <!-- Import/Export Tab -->
     <div id="wine-tab-sync" style="display: none;">
       <div class="card" style="cursor: default; max-width: 700px;">
-        <h3>&#128229; Export Collection</h3>
-        <p style="margin-bottom: 1rem; font-size: 0.825rem; color: var(--text-dim);">Download your wine collection as CSV. Commit this to the GitHub repo at <code>data/wines.csv</code>.</p>
-        <button onclick="exportWinesCSV()"
-          style="padding: 0.6rem 1.25rem; border-radius: 8px; border: none; background: var(--accent); color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
-          Download CSV
-        </button>
+        <h3>&#128229; Sync to Repo (JSON)</h3>
+        <p style="margin-bottom: 1rem; font-size: 0.825rem; color: var(--text-dim);">Download your collection as <code>wines.json</code>. Replace <code>data/wines.json</code> in the repo and push — your wines will sync to all devices.</p>
+        <div style="display:flex;gap:0.5rem;">
+          <button onclick="exportWinesJSON()"
+            style="padding: 0.6rem 1.25rem; border-radius: 8px; border: none; background: var(--accent); color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+            Download wines.json
+          </button>
+          <button onclick="exportWinesCSV()"
+            style="padding: 0.6rem 1.25rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 0.85rem; cursor: pointer;">
+            Download CSV
+          </button>
+        </div>
       </div>
       <div class="card" style="cursor: default; max-width: 700px; margin-top: 0.75rem;">
         <h3>&#128228; Import CSV</h3>
@@ -1977,9 +1992,42 @@
     }
   })();
 
-  // ---- WINE CELLAR ----
+  // ---- WINE CELLAR (repo-backed) ----
+  // Wines load from /data/wines.json (repo), merged with any localStorage additions.
+  // Local edits save to localStorage. "Export JSON" generates the file for committing back to repo.
+  let _repoWines = []; // wines from the repo file
   function getWines() { return JSON.parse(localStorage.getItem('tmh-wines') || '[]'); }
   function saveWines(wines) { localStorage.setItem('tmh-wines', JSON.stringify(wines)); updateWineStats(); }
+
+  // Load repo wines on startup and merge with local
+  (async function loadRepoWines() {
+    try {
+      const resp = await fetch('/data/wines.json?t=' + Date.now());
+      const repoWines = await resp.json();
+      if (!Array.isArray(repoWines) || !repoWines.length) return;
+      _repoWines = repoWines;
+      const local = getWines();
+      // Merge: add repo wines not already in local (match by name+vintage+producer)
+      let added = 0;
+      repoWines.forEach(rw => {
+        const key = (rw.name || '').toLowerCase() + '|' + (rw.vintage || '') + '|' + (rw.producer || '').toLowerCase();
+        const exists = local.some(lw => (lw.name || '').toLowerCase() + '|' + (lw.vintage || '') + '|' + (lw.producer || '').toLowerCase() === key);
+        if (!exists) { local.push(rw); added++; }
+      });
+      if (added) { saveWines(local); renderWineTable(); }
+    } catch(e) { /* repo wines unavailable */ }
+  })();
+
+  function exportWinesJSON() {
+    const wines = getWines();
+    const json = JSON.stringify(wines, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'wines.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
 
   function updateWineStats() {
     const wines = getWines();
