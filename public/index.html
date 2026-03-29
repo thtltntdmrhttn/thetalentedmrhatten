@@ -523,6 +523,33 @@
   </div>
 </div>
 
+<!-- GLOBAL TOTP GATE — blocks portal until authenticated each session -->
+<div id="portal-totp-gate" style="position:fixed;inset:0;z-index:9000;background:var(--bg);display:flex;align-items:center;justify-content:center;">
+  <div style="max-width:380px;width:90%;text-align:center;">
+    <div style="font-size:3rem;margin-bottom:1rem;opacity:0.5;">&#128274;</div>
+    <h2 style="font-family:'Bodoni Moda',Georgia,serif;color:var(--text-bright);margin-bottom:0.5rem;">Authentication Required</h2>
+    <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:1.5rem;">Enter your authenticator code to access the portal.</p>
+    <div id="gate-totp-setup" style="display:none;margin-bottom:1rem;text-align:left;">
+      <div style="font-size:0.8rem;color:var(--orange);margin-bottom:0.5rem;font-weight:600;">First-time setup: Scan this with your authenticator app</div>
+      <div id="gate-totp-qr" style="background:white;display:inline-block;padding:12px;border-radius:8px;margin-bottom:0.5rem;"></div>
+      <div style="font-size:0.7rem;color:var(--text-dim);margin-top:0.5rem;">Or enter manually: <code id="gate-totp-secret-display" style="background:var(--surface3);padding:2px 6px;border-radius:3px;color:var(--accent-text);user-select:all;"></code></div>
+      <button onclick="confirmGateTotpSetup()" style="margin-top:0.75rem;padding:0.5rem 1rem;border-radius:8px;border:none;background:var(--green);color:white;font-weight:600;font-size:0.82rem;cursor:pointer;">I've scanned it</button>
+    </div>
+    <input type="text" id="gate-totp-input" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+      style="width:100%;padding:0.9rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text-bright);font-size:1.8rem;outline:none;text-align:center;letter-spacing:0.5em;font-family:'Cascadia Code',monospace;box-sizing:border-box;"
+      onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+      onkeydown="if(event.key==='Enter')verifyGateTotp()" />
+    <button onclick="verifyGateTotp()"
+      style="width:100%;padding:0.75rem;border-radius:8px;border:none;background:var(--accent);color:white;font-weight:600;font-size:0.95rem;cursor:pointer;margin-top:0.75rem;">
+      Unlock Portal
+    </button>
+    <div id="gate-totp-msg" style="font-size:0.8rem;margin-top:0.75rem;"></div>
+    <div style="margin-top:1.5rem;">
+      <p style="font-size:0.7rem;color:var(--text-dim);">Open Google Authenticator and enter the 6-digit code for "Bushwick HQ"</p>
+    </div>
+  </div>
+</div>
+
 <!-- Mobile header -->
 <div class="mobile-header">
   <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
@@ -782,20 +809,84 @@
     </div>
 
     <div class="pipeline">
-      <div class="pipe-step"><h4>&#127908; "OK Nabu"</h4><p>Wake word (openWakeWord on server)</p></div>
+      <div class="pipe-step" onclick="this.classList.toggle('open')" style="cursor:pointer;">
+        <h4>&#127908; "OK Nabu"</h4><p>Wake word (openWakeWord on server)</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Engine:</strong> openWakeWord add-on running on the NUC as a Home Assistant add-on</li>
+            <li><strong>Model:</strong> <code>okay_nabu</code> — a pre-trained TFLite neural network that listens for the phonetic pattern "okay nabu" in a continuous audio stream</li>
+            <li><strong>How it works:</strong> The Onju Voice 2 (ESP32-S3) runs ESPHome firmware with a microphone (I2S MEMS). It maintains a persistent TCP connection to the openWakeWord add-on. Audio is streamed as 16kHz 16-bit PCM. The model uses a sliding window of ~1.5s of audio, computing mel-frequency cepstral coefficients (MFCCs) and running inference every 80ms</li>
+            <li><strong>Thresholds:</strong> <code>threshold: 0.5</code>, <code>trigger_level: 1</code> — balances false positives vs missed triggers. All three params (threshold, trigger_level, debug_logging) are mandatory in the add-on config</li>
+            <li><strong>Known fix:</strong> Pipeline was originally configured with <code>ok_nabu_v0.1</code> but openWakeWord sends <code>okay_nabu</code> — mismatch fixed in <code>/config/.storage/assist_pipeline.pipelines</code></li>
+            <li><strong>After restart:</strong> Restarting the openWakeWord add-on requires restarting the Onju device AND toggling its wake word switch to re-establish the streaming connection</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
       <div class="pipe-arrow">&#8595;</div>
-      <div class="pipe-step"><h4>&#128488; Whisper STT</h4><p>Speech to text (local on NUC)</p></div>
+      <div class="pipe-step" onclick="this.classList.toggle('open')" style="cursor:pointer;">
+        <h4>&#128488; Whisper STT</h4><p>Speech to text (local on NUC)</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Engine:</strong> OpenAI Whisper running as a Home Assistant add-on (Whisper add-on)</li>
+            <li><strong>Model:</strong> <code>base</code> model (~140MB) — runs entirely on CPU (i7-8559U). Larger models available but base gives best speed/accuracy tradeoff for the NUC's hardware</li>
+            <li><strong>Processing:</strong> Once the wake word triggers, audio is buffered until silence is detected (Voice Activity Detection). The complete utterance is then sent to Whisper as a single WAV chunk</li>
+            <li><strong>Latency:</strong> ~500-800ms for a typical command on the i7 NUC. No GPU acceleration — pure CPU inference using ONNX runtime</li>
+            <li><strong>Language:</strong> English (en). Whisper supports 99 languages but is configured for English-only for faster inference</li>
+            <li><strong>Privacy:</strong> All speech processing happens locally on the NUC. No audio leaves the network. Only the transcribed text is sent to the cloud (Claude) for intent processing</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
       <div class="pipe-arrow">&#8595;</div>
-      <div class="pipe-step highlight"><h4>&#129302; Claude Haiku 4.5</h4><p>Understands intent (Anthropic cloud API)</p></div>
+      <div class="pipe-step highlight" onclick="this.classList.toggle('open')" style="cursor:pointer;">
+        <h4>&#129302; Ollama + Claude</h4><p>Intent processing (local LLM + cloud fallback)</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Primary engine:</strong> Ollama running <code>qwen2.5:3b</code> on the NUC — a 3-billion parameter model that handles device commands and general questions locally</li>
+            <li><strong>Configuration:</strong> <code>conversation.ollama_conversation</code> entity, URL <code>http://76e18fb5-ollama:11434</code>, context_window=2048, max_history=5</li>
+            <li><strong>keep_alive:</strong> Set to <code>-1</code> (indefinite) — keeps the model loaded in RAM permanently. Warm response ~1.4s, cold load ~3.4s</li>
+            <li><strong>Intent routing:</strong> <code>prefer_local_intents=true</code> — device commands (lights, switches, scenes) are handled natively by HA's intent system without hitting any LLM. Only general questions and complex queries go to Ollama</li>
+            <li><strong>Cloud fallback:</strong> The Remote Terminal page uses Claude Haiku 4.5 via the Anthropic API for more complex interactions, but the voice pipeline uses Ollama locally for speed and privacy</li>
+            <li><strong>Pipeline name:</strong> "Orion" — configured in HA's Assist pipeline settings</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
       <div class="pipe-arrow">&#8595;</div>
-      <div class="pipe-step"><h4>&#128264; Piper TTS</h4><p>Text to speech (local on NUC)</p></div>
+      <div class="pipe-step" onclick="this.classList.toggle('open')" style="cursor:pointer;">
+        <h4>&#128264; Piper TTS</h4><p>Text to speech (local on NUC)</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Engine:</strong> Piper TTS add-on — a fast, local neural text-to-speech system built on VITS (Variational Inference with adversarial learning for end-to-end Text-to-Speech)</li>
+            <li><strong>Voice model:</strong> English male voice, optimized for natural-sounding smart home responses</li>
+            <li><strong>Speed:</strong> Generates speech in ~200-400ms for typical responses. Streams output as 22kHz WAV audio</li>
+            <li><strong>Architecture:</strong> Uses a phoneme-based approach — text is first converted to phonemes (pronunciation symbols), then a neural network generates a mel spectrogram, which is converted to audio via a HiFi-GAN vocoder</li>
+            <li><strong>Privacy:</strong> Runs entirely on the NUC. No text or audio is sent to external services for speech synthesis</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
       <div class="pipe-arrow">&#8595;</div>
-      <div class="pipe-step"><h4>&#128226; Onju Voice 2</h4><p>Plays the response (ESPHome speaker)</p></div>
+      <div class="pipe-step" onclick="this.classList.toggle('open')" style="cursor:pointer;">
+        <h4>&#128226; Onju Voice 2</h4><p>Plays the response (ESPHome speaker)</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Hardware:</strong> ESP32-S3 microcontroller with I2S MEMS microphone and I2S DAC speaker output. Custom PCB designed for voice assistant use</li>
+            <li><strong>Firmware:</strong> ESPHome — configured as a <code>media_player</code> entity (not <code>speaker</code>) because the voice_assistant component and media_player share the I2S bus and cannot operate simultaneously</li>
+            <li><strong>Audio output:</strong> Receives synthesized speech from Piper as WAV over HTTP, plays through the built-in speaker via I2S DAC</li>
+            <li><strong>Limitation:</strong> Cannot play live HTTP streams (like BBC radio) — ESPHome's I2S media_player only supports short audio files (TTS responses). Live streaming requires a Chromecast or similar device</li>
+            <li><strong>Reference config:</strong> Based on tetele's Onju Voice 2 ESPHome config (Session 3 setup)</li>
+            <li><strong>Entity:</strong> <code>media_player.onju_voice2</code> — appears in HA as a media player with volume control</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
     </div>
 
     <div class="info-box">
-      <h4>How it works</h4>
-      <p>The Onju Voice 2 listens for "OK Nabu". When triggered, it streams audio to the NUC, which converts speech to text locally with Whisper. The text goes to Claude Haiku 4.5 (cloud), which interprets the command. Device commands (lights, switches) go straight to HA. General questions get answered by Claude. The response is converted to speech by Piper (local) and played on the Onju speaker. Total time: 2-3 seconds.</p>
+      <h4>End-to-end flow</h4>
+      <p>The Onju Voice 2 maintains a persistent audio stream to the openWakeWord add-on. When "OK Nabu" is detected, the audio pipeline activates: speech is captured until silence, sent to Whisper for local transcription (~500ms), the text is routed through HA's intent system (device commands handled locally) or Ollama for general questions (~1.4s), and the response is synthesized by Piper (~300ms) and played back on the Onju speaker. Total end-to-end latency: 2-3 seconds. All processing except Ollama inference happens on the NUC — no audio leaves the local network.</p>
     </div>
   </div>
 
@@ -806,14 +897,111 @@
       <p>All connected hardware across the apartment.</p>
     </div>
     <div class="card-grid">
-      <div class="card"><h3>&#128187; Intel NUC</h3><p>i7-8559U, 16GB RAM, 185GB free. Runs HA OS 24/7.</p></div>
-      <div class="card"><h3>&#128226; Onju Voice 2</h3><p>ESPHome voice satellite. Wake word + speaker.</p></div>
-      <div class="card"><h3>&#127911; Chromecast (Stairs)</h3><p>Media player for BBC/KissKiss radio streams.</p></div>
-      <div class="card"><h3>&#128267; SkyConnect (Zigbee)</h3><p>USB coordinator for ZHA + Thread/Matter.</p></div>
-      <div class="card"><h3>&#128267; Z-Wave Stick</h3><p>USB controller for Z-Wave JS devices.</p></div>
-      <div class="card"><h3>&#127777; Aranet4</h3><p>Bluetooth air quality: temp, humidity, CO2, pressure.</p></div>
-      <div class="card"><h3>&#128276; Aeotec Doorbell 6</h3><p>Z-Wave doorbell, 30 tones, 8 endpoints.</p></div>
-      <div class="card"><h3>&#128241; Phone + iPad</h3><p>Mobile companions with battery tracking.</p></div>
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#128187; Intel NUC</h3><p>i7-8559U, 16GB RAM, 185GB free. Runs HA OS 24/7.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>CPU:</strong> Intel Core i7-8559U — 4 cores / 8 threads, 2.7GHz base / 4.5GHz turbo. Coffee Lake with Iris Plus 655 iGPU</li>
+            <li><strong>RAM:</strong> 16GB DDR4 — sufficient for HA OS, Whisper, Piper, Ollama (qwen2.5:3b uses ~2.5GB), and all add-ons simultaneously</li>
+            <li><strong>Storage:</strong> 256GB NVMe SSD, 185GB free. HA OS uses ~15GB, Ollama models ~5GB, recordings and backups take the rest</li>
+            <li><strong>OS:</strong> Home Assistant OS (HassOS) — a minimal Linux distribution (buildroot-based) that runs HA Core in a Docker container with a Supervisor managing add-ons</li>
+            <li><strong>Network:</strong> Gigabit Ethernet on LAN. Accessible at <code>homeassistant.local:8123</code>. Also runs the Ollama HTTP API on port 11434 internally</li>
+            <li><strong>USB devices:</strong> SkyConnect (Zigbee/Thread), Z-Wave stick — both connected via USB passthrough to HA OS</li>
+            <li><strong>Power:</strong> ~15W idle, ~35W under load. Runs 24/7 with no scheduled downtime</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#128226; Onju Voice 2</h3><p>ESPHome voice satellite. Wake word + speaker.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>SoC:</strong> ESP32-S3 — dual-core Xtensa LX7 @ 240MHz with 512KB SRAM. Wi-Fi 802.11 b/g/n + Bluetooth 5 LE</li>
+            <li><strong>Microphone:</strong> I2S MEMS mic — captures audio at 16kHz 16-bit for wake word detection and speech capture</li>
+            <li><strong>Speaker:</strong> I2S DAC output — plays TTS responses. Cannot share I2S bus with media_player simultaneously (hardware limitation)</li>
+            <li><strong>Firmware:</strong> ESPHome with voice_assistant component. Compiled and flashed OTA from HA. Config based on tetele's reference gist</li>
+            <li><strong>Entity:</strong> <code>media_player.onju_voice2</code> — registered as media_player (not speaker) for voice_assistant compatibility</li>
+            <li><strong>Limitation:</strong> Can only play short audio files (TTS). No live HTTP stream support — use Chromecast for radio</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#127911; Chromecast (Stairs)</h3><p>Media player for BBC/KissKiss radio streams.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Integration:</strong> Google Cast — discovered via mDNS on the local network. Entity: <code>media_player.stairs</code></li>
+            <li><strong>Capabilities:</strong> Plays HTTP audio streams (MP3, AAC, HLS). Supports volume control, play/pause/stop via HA REST API</li>
+            <li><strong>Current use:</strong> BBC World Service (<code>http://stream.live.vc.bbcmedia.co.uk/bbc_world_service</code>) and KissKiss Radio (<code>https://flufrg.fluidstream.eu/KissKiss.aac</code>)</li>
+            <li><strong>Automations:</strong> BBC and KissKiss are mutually exclusive — each automation stops the other before playing. Controlled via <code>input_boolean</code> toggles on the dashboard</li>
+            <li><strong>Note:</strong> HomePod/AirPlay speakers are pending — Thread/Matter dongle incoming to connect them properly</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#128267; SkyConnect (Zigbee)</h3><p>USB coordinator for ZHA + Thread/Matter.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Hardware:</strong> Home Assistant SkyConnect — USB dongle with Silicon Labs EFR32MG21 chip. Supports Zigbee 3.0 and Thread (802.15.4)</li>
+            <li><strong>Zigbee:</strong> Runs ZHA (Zigbee Home Automation) integration. Acts as the Zigbee coordinator managing all Zigbee devices (lights, sensors, buttons)</li>
+            <li><strong>Thread/Matter:</strong> Can act as a Thread Border Router for Matter devices. Currently awaiting Thread dongle for HomePod integration</li>
+            <li><strong>Firmware:</strong> Multi-protocol firmware allows simultaneous Zigbee + Thread, though in practice most setups use one at a time for stability</li>
+            <li><strong>Connected devices:</strong> OSRAM Zigbee lights (some removed — dead), Zigbee sensors, buttons. Tuya lights connect via Wi-Fi, not Zigbee</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#128267; Z-Wave Stick</h3><p>USB controller for Z-Wave JS devices.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Integration:</strong> Z-Wave JS — runs the Z-Wave JS server as an HA add-on. Communicates with devices on the 908.42MHz frequency (US)</li>
+            <li><strong>Protocol:</strong> Z-Wave Plus (Gen5+) — mesh networking where mains-powered devices act as repeaters. Range: ~30m indoors per hop</li>
+            <li><strong>Connected devices:</strong> Aeotec Doorbell 6 (8 endpoints, 30 tones), smart plugs with power monitoring (watts + kWh)</li>
+            <li><strong>Known issue:</strong> Zigbee power sensors sometimes report false 9500W readings — known firmware bug, those sensor entities were deleted</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#127777; Aranet4</h3><p>Bluetooth air quality: temp, humidity, CO2, pressure.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Connection:</strong> Bluetooth Low Energy (BLE) — pairs directly with the NUC's built-in Bluetooth adapter. Polled periodically by HA</li>
+            <li><strong>Sensors:</strong> Temperature (10-35&deg;C), Humidity (0-100%), CO2 (0-9999 ppm via NDIR sensor), Atmospheric Pressure (950-1070 hPa)</li>
+            <li><strong>CO2 sensor:</strong> Uses Non-Dispersive Infrared (NDIR) — gold standard for CO2 measurement. Measures actual CO2 concentration, not estimated eCO2</li>
+            <li><strong>Battery:</strong> 2x AA batteries, ~2 year life. Reports battery level to HA</li>
+            <li><strong>Alerts:</strong> Configurable in HA — CO2 above 1000ppm (ventilate), temperature above 26&deg;C, humidity below 30%</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#128276; Aeotec Doorbell 6</h3><p>Z-Wave doorbell, 30 tones, 8 endpoints.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Protocol:</strong> Z-Wave Plus — 8 siren endpoints, each configurable with different tones and volumes independently</li>
+            <li><strong>Configured tones:</strong> Ding Dong (5s, classic), Chimes (7s, melodic), Ship Bell (3s, nautical), Christmas Tree (3s, festive)</li>
+            <li><strong>Volume:</strong> Set to 0.3 (30%) — was 0.0 (silent) on initial setup, fixed in Session 5</li>
+            <li><strong>30 built-in tones:</strong> Each endpoint can play any of 30 pre-loaded sounds. 4 currently mapped to dashboard buttons</li>
+            <li><strong>HA entity:</strong> Appears as <code>siren.aeotec_doorbell_6</code> with multiple endpoints for different trigger zones</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#128241; Phone + iPad</h3><p>Mobile companions with battery tracking.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Integration:</strong> HA Companion App (iOS) — registers as a mobile_app device, reports battery level, charging state, Wi-Fi SSID, and location</li>
+            <li><strong>Sensors:</strong> Battery percentage, battery state (charging/not charging), connection type, last update timestamp</li>
+            <li><strong>Notifications:</strong> HA can push notifications to the phone via the companion app — used for alerts, doorbell triggers, and automation confirmations</li>
+            <li><strong>Location:</strong> Reports GPS coordinates for presence detection (home/away automations)</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
     </div>
   </div>
 
@@ -821,47 +1009,103 @@
   <div class="page" id="page-security">
     <div class="page-header">
       <h2>Security & Secrets</h2>
-      <p>Two layers of protection &mdash; like having both a safe and a safety deposit box.</p>
+      <p>Three-layer defense-in-depth: encryption at rest, vault storage, and version-controlled audit trail.</p>
     </div>
 
     <div class="card-grid">
       <div class="card" onclick="this.classList.toggle('open')">
-        <h3>&#128274; git-crypt (The Safe)</h3>
-        <p>Encrypts sensitive files in the GitHub repo. Transparent on your PC, scrambled on GitHub.</p>
+        <h3>&#128274; git-crypt (Encryption at Rest)</h3>
+        <p>Transparently encrypts sensitive files in the GitHub repo using AES-256-CTR.</p>
         <div class="detail">
           <ul>
-            <li>Encrypts the <code>secrets/</code> folder automatically</li>
-            <li>AES-256 encryption</li>
-            <li>Master key backed up in 1Password</li>
-            <li>Without the key, GitHub files are unreadable</li>
+            <li><strong>Algorithm:</strong> AES-256-CTR stream cipher — each file is encrypted with a unique nonce derived from the file path, preventing identical plaintexts from producing identical ciphertexts</li>
+            <li><strong>How it works:</strong> git-crypt installs as a git filter (clean/smudge). On <code>git push</code>, the "clean" filter encrypts files matching <code>.gitattributes</code> patterns. On <code>git pull</code>, the "smudge" filter decrypts them. Your local working copy is always plaintext</li>
+            <li><strong>Protected paths:</strong> <code>secrets/**</code> directory — contains <code>ha-token.secret</code>, <code>cf-access-token.secret</code>, <code>cf-token.secret</code></li>
+            <li><strong>Key management:</strong> Symmetric key stored at <code>/tmp/git-crypt.exe</code> locally and backed up in 1Password vault "Claude Config" as the master key</li>
+            <li><strong>On GitHub:</strong> Without the symmetric key, encrypted files appear as binary blobs. Even if the private repo were compromised, secrets remain encrypted</li>
+            <li><strong>Binary:</strong> <code>/tmp/git-crypt.exe</code> — downloaded at session start if missing</li>
           </ul>
         </div>
         <div class="click-hint">Click to expand</div>
       </div>
 
       <div class="card" onclick="this.classList.toggle('open')">
-        <h3>&#128272; 1Password (The Safety Deposit Box)</h3>
-        <p>Primary secret store with audit trail. Every API key and password lives here.</p>
+        <h3>&#128272; 1Password (Secret Vault)</h3>
+        <p>Zero-knowledge encrypted vault with CLI access. Every credential has an audit trail.</p>
         <div class="detail">
           <ul>
-            <li>Vault: "Claude Config"</li>
-            <li>Stores: HA token, Anthropic key, router password</li>
-            <li>Also stores git-crypt master key</li>
-            <li>CLI: <code>op read "op://Claude Config/..."</code></li>
+            <li><strong>Architecture:</strong> 1Password uses SRP (Secure Remote Password) protocol — the master password never leaves your device. Vault data is encrypted with AES-256-GCM using a key derived from your master password + Secret Key (128-bit entropy)</li>
+            <li><strong>Vault:</strong> "Claude Config" — dedicated vault for infrastructure credentials, isolated from personal passwords</li>
+            <li><strong>Stored items:</strong> HA long-lived access token, Anthropic API key, Netgear RAX80 router password, git-crypt symmetric master key, Cloudflare API tokens</li>
+            <li><strong>CLI access:</strong> <code>op</code> command — authenticates via biometric or master password. Read secrets with <code>op read "op://Claude Config/Item Name/field"</code></li>
+            <li><strong>Audit trail:</strong> Every read/write to the vault is logged with timestamp and device. Can detect unauthorized access</li>
+            <li><strong>Session:</strong> CLI sessions expire after 30 minutes. Re-authentication required via <code>op signin</code></li>
           </ul>
         </div>
         <div class="click-hint">Click to expand</div>
       </div>
 
       <div class="card" onclick="this.classList.toggle('open')">
-        <h3>&#128193; GitHub Repo (The Filing Cabinet)</h3>
-        <p>Version-controlled backup. Private repo with full change history.</p>
+        <h3>&#128193; GitHub Repo (Version Control)</h3>
+        <p>Private repo with auto-sync, full diff history, and encrypted secrets. Every change is tracked.</p>
         <div class="detail">
           <ul>
-            <li>Repo: <code>github.com/thtltntdmrhttn/claude-config</code></li>
-            <li>Auto-syncs on Claude session end</li>
-            <li>Full diff history (like track changes)</li>
-            <li>Can restore any previous version</li>
+            <li><strong>Repo:</strong> <code>github.com/thtltntdmrhttn/claude-config</code> (private) — contains all Claude Code config, skills, memory files, and encrypted secrets</li>
+            <li><strong>Auto-sync:</strong> A Claude Code hook fires on every session "Stop" event, running <code>~/claude-config/sync.sh push</code> — auto-commits changes, pushes to remote</li>
+            <li><strong>sync.sh:</strong> Bash script with three modes: <code>push</code> (commit + push), <code>pull</code> (fetch + merge), <code>status</code> (show diff). Copies files bidirectionally between <code>~/.claude</code> and the repo</li>
+            <li><strong>Git config:</strong> Commits as <code>Terence &lt;thtltntdmrhttn@users.noreply.github.com&gt;</code> — no personal email exposed</li>
+            <li><strong>Recovery:</strong> Any previous state can be restored via <code>git checkout &lt;commit&gt;</code>. Full history of every config change, skill edit, and memory update since setup</li>
+            <li><strong>Authentication:</strong> GitHub CLI (<code>gh</code>) authenticated as <code>thtltntdmrhttn</code> — uses OAuth token stored by gh, not a PAT</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#9729; Cloudflare Access (Network Gate)</h3>
+        <p>Zero-trust access layer protecting all portal domains with email OTP authentication.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Mechanism:</strong> Cloudflare Access acts as a reverse proxy — every request to the portal domains must carry a valid <code>CF_Authorization</code> JWT cookie. Unauthenticated requests get redirected to the OTP login page</li>
+            <li><strong>Authentication:</strong> Email-based One-Time Password (OTP). User enters email, receives a 6-digit code, enters it to get a signed JWT session cookie</li>
+            <li><strong>Session duration:</strong> 720 hours (30 days) — designed as a one-time setup per browser. The portal's own TOTP gate provides per-session security</li>
+            <li><strong>JWT cookie:</strong> <code>CF_Authorization</code> — contains <code>email</code>, <code>iat</code>, <code>exp</code> claims. Signed by Cloudflare's keys, verified at the edge on every request</li>
+            <li><strong>Protected domains:</strong> thetalentedmrhatten.com, terencelinushatten.com, oliviafrancesmcdowell.com</li>
+            <li><strong>Binding cookie:</strong> <code>enable_binding_cookie: true</code> — ties the session to the specific browser/device. Prevents cookie theft from working on another machine</li>
+            <li><strong>Team:</strong> bushwick-hq — Cloudflare Zero Trust organization. Account ID: <code>f0425e...</code></li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#128274; Portal TOTP (Session Gate)</h3>
+        <p>Time-based One-Time Password required every browser session. Uses Google Authenticator.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Standard:</strong> RFC 6238 (TOTP) — generates a 6-digit code that changes every 30 seconds based on a shared secret and the current Unix timestamp</li>
+            <li><strong>Algorithm:</strong> HMAC-SHA1 over a counter derived from <code>floor(unix_time / 30)</code>. The 160-bit HMAC output is dynamically truncated to a 6-digit decimal code</li>
+            <li><strong>Secret storage:</strong> Base32-encoded secret stored in <code>localStorage</code> under key <code>tmh-totp-secret</code>. Generated client-side using <code>crypto.getRandomValues()</code> — never sent to any server</li>
+            <li><strong>Verification window:</strong> Accepts codes from t-1 to t+1 (90-second window) to account for clock drift between phone and browser</li>
+            <li><strong>Rate limiting:</strong> 5 failed attempts triggers a 60-second lockout. Counter resets on successful auth</li>
+            <li><strong>Session scope:</strong> Verification stored in <code>sessionStorage</code> (<code>tmh-totp-verified</code>) — closing the browser tab clears it, requiring re-authentication</li>
+            <li><strong>Setup:</strong> First-time users scan a QR code (otpauth:// URI) with Google Authenticator. Issuer: "Bushwick HQ"</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#128736; Content Security Policy</h3>
+        <p>HTTP headers and meta tags restricting what the portal can load and execute.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>script-src:</strong> <code>'self' 'unsafe-inline' https://cdn.jsdelivr.net</code> — only scripts from the portal origin, inline scripts, and jsdelivr (QR code lib) are allowed. No arbitrary external JS</li>
+            <li><strong>connect-src:</strong> Whitelisted API endpoints only — Anthropic API, Open-Meteo (weather), Yahoo Finance, CoinGecko, HomeAssistant local. No other outbound requests possible</li>
+            <li><strong>img-src:</strong> <code>'self' data: blob:</code> — images from the portal, data URIs (QR codes), and blob URLs (wine photo capture). No external image loading</li>
+            <li><strong>frame-src:</strong> <code>'none'</code> — portal cannot be embedded in iframes (clickjacking protection)</li>
+            <li><strong>HTTP headers:</strong> <code>_headers</code> file on CF Pages adds X-Frame-Options: DENY, X-Content-Type-Options: nosniff, Strict-Transport-Security with preload, Referrer-Policy: no-referrer</li>
+            <li><strong>Referrer:</strong> <code>&lt;meta name="referrer" content="no-referrer"&gt;</code> — prevents the portal URL from leaking to external APIs via the Referer header</li>
           </ul>
         </div>
         <div class="click-hint">Click to expand</div>
@@ -870,7 +1114,7 @@
 
     <div class="info-box">
       <h4>How secrets flow</h4>
-      <p>When Claude needs to talk to Home Assistant, it reads the token from an encrypted file on your PC. That file is encrypted by git-crypt before being pushed to GitHub. The same token is also in 1Password as backup. No secrets are ever hardcoded in scripts or visible in plain text on GitHub.</p>
+      <p>When Claude needs to talk to Home Assistant, it reads the long-lived access token from <code>~/claude-config/secrets/ha-token.secret</code> — a file that exists as plaintext on the local PC but is AES-256 encrypted by git-crypt before being pushed to GitHub. The same token is stored in 1Password vault "Claude Config" as a backup with full audit trail. The portal itself contains zero API keys or tokens — the Remote Terminal's Anthropic API key is entered by the user and stored in the browser's localStorage, sent directly to Anthropic's API with no intermediary server.</p>
     </div>
   </div>
 
@@ -878,39 +1122,115 @@
   <div class="page" id="page-architecture">
     <div class="page-header">
       <h2>Architecture</h2>
-      <p>How the pieces fit together &mdash; your PC is the front office, the NUC is the back office.</p>
+      <p>Three-tier system: PC (development + orchestration), NUC (automation + AI), smart devices (physical world).</p>
     </div>
 
     <div class="pipeline">
-      <div class="pipe-step highlight" style="min-width: 280px;">
-        <h4>&#128187; Your Windows PC</h4>
+      <div class="pipe-step highlight" onclick="this.classList.toggle('open')" style="min-width:280px;cursor:pointer;">
+        <h4>&#128187; Windows PC (Tier 1: Development)</h4>
         <p>Claude Code, GitHub CLI, 1Password CLI, git-crypt</p>
+        <div class="detail">
+          <ul>
+            <li><strong>OS:</strong> Windows 11 Home (build 10.0.26200) with bash shell (Git Bash / MSYS2)</li>
+            <li><strong>Claude Code:</strong> Anthropic's CLI agent (claude-opus-4-6) running in the terminal. Has full file system access, bash execution, and MCP tool integrations. This is the primary interface for managing the entire system</li>
+            <li><strong>Skills system:</strong> Custom skill files in <code>~/.claude/skills/</code> — home-assistant.md (HA control), butler.md (life management), ha-api.sh (bash helpers), ha-entity-manager.py (WebSocket CRUD), ha-dashboard-push.py (dashboard config)</li>
+            <li><strong>Memory system:</strong> Persistent file-based memory in <code>~/.claude/projects/C--/memory/</code> — MEMORY.md (index), session-log.md (history), home-assistant-details.md (entity reference). Loaded at conversation start, persists across sessions</li>
+            <li><strong>Config sync:</strong> <code>~/claude-config/</code> repo auto-syncs to GitHub on session end via a Claude Code hook. Encrypted secrets stay encrypted in transit</li>
+            <li><strong>Tools:</strong> git-crypt (<code>/tmp/git-crypt.exe</code>), jq (<code>/tmp/jq.exe</code>), GitHub CLI (<code>gh</code>), 1Password CLI (<code>op</code>), Python (<code>py</code> launcher)</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
       </div>
-      <div class="pipe-arrow">&#8595; Wi-Fi / LAN</div>
-      <div class="pipe-step" style="min-width: 280px;">
-        <h4>&#128421; Intel NUC Server</h4>
-        <p>Home Assistant OS, Whisper, Piper, Ollama</p>
+      <div class="pipe-arrow">&#8595; Wi-Fi / LAN (REST API + WebSocket)</div>
+      <div class="pipe-step" onclick="this.classList.toggle('open')" style="min-width:280px;cursor:pointer;">
+        <h4>&#128421; Intel NUC (Tier 2: Automation + AI)</h4>
+        <p>Home Assistant OS, Whisper, Piper, Ollama, openWakeWord</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Home Assistant OS:</strong> Buildroot-based Linux running HA Core in a Docker container. Supervisor manages add-ons as separate containers. Version 2026.3.4</li>
+            <li><strong>HA Core:</strong> Python application (asyncio event loop) managing all integrations, automations, and the entity state machine. REST API on port 8123, WebSocket on /api/websocket</li>
+            <li><strong>Add-ons (containers):</strong> Whisper (STT), Piper (TTS), openWakeWord (wake word detection), Ollama (LLM), Z-Wave JS (protocol server), ESPHome (device compiler), HACS (community store)</li>
+            <li><strong>Ollama:</strong> Runs <code>qwen2.5:3b</code> — 3B parameter model in ~2.5GB RAM. HTTP API on port 11434 (internal Docker network). keep_alive=-1 keeps model warm</li>
+            <li><strong>Integrations:</strong> Z-Wave JS, ZHA (Zigbee), Tuya (cloud), ESPHome (local), Matter (future), Cast (Chromecast), HomeKit, Wyoming (voice protocol)</li>
+            <li><strong>Entity count:</strong> 359 entities (cleaned from 1,198) — 18 lights, 7 switches, 1 media player, 3 scenes, 5 automations</li>
+            <li><strong>Communication with PC:</strong> Claude Code sends REST API calls (<code>curl</code>) and WebSocket messages (Python scripts) to <code>homeassistant.local:8123</code> using a long-lived access token</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
       </div>
-      <div class="pipe-arrow">&#8595; Z-Wave / Zigbee / Wi-Fi / BLE / Thread</div>
-      <div class="pipe-step" style="min-width: 280px;">
-        <h4>&#127968; Smart Devices</h4>
+      <div class="pipe-arrow">&#8595; Z-Wave (908MHz) / Zigbee (2.4GHz) / Wi-Fi / BLE / Thread</div>
+      <div class="pipe-step" onclick="this.classList.toggle('open')" style="min-width:280px;cursor:pointer;">
+        <h4>&#127968; Smart Devices (Tier 3: Physical)</h4>
         <p>18 lights, 7 switches, doorbell, sensors, speakers</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Zigbee (ZHA via SkyConnect):</strong> Lights (OSRAM), sensors, buttons — 2.4GHz mesh network. Each mains-powered device acts as a router, extending range</li>
+            <li><strong>Z-Wave (Z-Wave JS via USB stick):</strong> Aeotec Doorbell 6, smart plugs with power monitoring — 908.42MHz mesh network (US frequency)</li>
+            <li><strong>Wi-Fi (Tuya cloud + local):</strong> Tuya ceiling lights, RGB lights — connected via Tuya integration. Support full RGB (hs) + color_temp (153-500 mireds)</li>
+            <li><strong>ESPHome (Wi-Fi, local only):</strong> Onju Voice 2 — ESP32-S3 with custom firmware. Communicates directly with HA over the local network, no cloud dependency</li>
+            <li><strong>Bluetooth LE:</strong> Aranet4 air quality sensor — passive BLE connection to NUC's built-in Bluetooth</li>
+            <li><strong>Cast (Wi-Fi):</strong> Chromecast on stairs, Office Speaker 2 — Google Cast protocol for media streaming</li>
+            <li><strong>Pending:</strong> HomePod via Thread/Matter (dongle incoming), AC units (GE Profile + Midea), Yamaha receiver</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
       </div>
     </div>
 
     <div class="section-title">Cloud Services</div>
     <div class="card-grid">
-      <div class="card">
+      <div class="card" onclick="this.classList.toggle('open')">
         <h3>&#9729; Anthropic API</h3>
-        <p>Claude Haiku 4.5 for voice commands and general questions via the voice pipeline.</p>
+        <p>Claude models powering voice assistant and remote terminal.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Voice pipeline:</strong> Ollama (qwen2.5:3b) handles most queries locally. Claude is available as a cloud fallback for complex reasoning</li>
+            <li><strong>Remote Terminal:</strong> Claude Haiku 4.5 via direct API calls from the browser. API key stored in localStorage, sent with each request via <code>fetch()</code> to <code>https://api.anthropic.com/v1/messages</code></li>
+            <li><strong>Claude Code:</strong> Claude Opus 4.6 running locally as the development agent. Manages the entire infrastructure through bash, file editing, and MCP tools</li>
+            <li><strong>No intermediary:</strong> All API calls go directly from the client (browser or CLI) to Anthropic. No proxy server, no data logging</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
       </div>
-      <div class="card">
+      <div class="card" onclick="this.classList.toggle('open')">
         <h3>&#9729; GitHub</h3>
-        <p>Private repo backing up all configs, skills, memory files. Auto-synced.</p>
+        <p>Private repos for config backup and portal hosting source.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>claude-config repo:</strong> <code>thtltntdmrhttn/claude-config</code> (private) — all Claude Code settings, skills, memory files. Auto-synced on session end</li>
+            <li><strong>Portal repo:</strong> <code>thtltntdmrhttn/thetalentedmrhatten</code> — source for the portal website. Pushes to master trigger automatic Cloudflare Pages deployment</li>
+            <li><strong>Authentication:</strong> GitHub CLI (<code>gh</code>) using OAuth device flow. Git operations use HTTPS with credential helper</li>
+            <li><strong>Encryption:</strong> git-crypt encrypts <code>secrets/</code> directory in claude-config repo. All other files are plaintext in the private repo</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
       </div>
-      <div class="card">
+      <div class="card" onclick="this.classList.toggle('open')">
+        <h3>&#9729; Cloudflare</h3>
+        <p>Pages hosting, Access authentication, DNS, and edge security for all domains.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Pages:</strong> Static site hosting with automatic deploys from GitHub master branch. Build: none (static HTML). Preview URLs generated for each commit</li>
+            <li><strong>Access:</strong> Zero-trust authentication layer. Email OTP login, JWT session cookies, binding cookies for device-level security</li>
+            <li><strong>DNS:</strong> Manages thetalentedmrhatten.com, terencelinushatten.com, oliviafrancesmcdowell.com</li>
+            <li><strong>Edge:</strong> DDoS protection, TLS termination, HTTP/2, Brotli compression — all handled at Cloudflare's edge before requests reach Pages</li>
+            <li><strong>Team:</strong> bushwick-hq (Zero Trust org). Account ID: f0425e78...</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
+      </div>
+      <div class="card" onclick="this.classList.toggle('open')">
         <h3>&#9729; 1Password</h3>
-        <p>Encrypted vault for API keys, tokens, and the git-crypt master key.</p>
+        <p>Zero-knowledge vault for all infrastructure credentials with CLI access.</p>
+        <div class="detail">
+          <ul>
+            <li><strong>Vault:</strong> "Claude Config" — isolated vault for infrastructure secrets only</li>
+            <li><strong>Items:</strong> HA long-lived access token, Anthropic API key, Netgear RAX80 password, git-crypt master key, Cloudflare API tokens</li>
+            <li><strong>CLI:</strong> <code>op read "op://Claude Config/Item/field"</code> — used by Claude Code to load secrets at runtime without hardcoding them</li>
+            <li><strong>Encryption:</strong> AES-256-GCM with keys derived from master password + Secret Key (128-bit). Zero-knowledge architecture — 1Password cannot decrypt your data</li>
+          </ul>
+        </div>
+        <div class="click-hint">Click to expand</div>
       </div>
     </div>
   </div>
@@ -1163,7 +1483,7 @@
   <div class="page" id="page-terminal">
     <div class="page-header">
       <h2>Remote Terminal</h2>
-      <p>Chat with Claude from anywhere. Triple-secured: Cloudflare Access + PIN + API key.</p>
+      <p>Chat with Claude from anywhere. Secured by Cloudflare Access + TOTP 2FA.</p>
     </div>
 
     <!-- 2FA Gate -->
@@ -1561,7 +1881,7 @@
   })();
 
   function logoutPortal() {
-    // Clear local state
+    // Clear session state (TOTP verification, entered flag) but keep localStorage (API key, TOTP secret)
     sessionStorage.clear();
     // CF Access logout endpoint revokes the session cookie
     window.location.href = '/.cdn-cgi/access/logout';
@@ -1611,7 +1931,7 @@
     if (typeof renderPendingRequests === 'function') renderPendingRequests();
   }
 
-  // Auto-dismiss landing if user has previously entered (session memory) — only for approved users
+  // Auto-dismiss landing if user has previously entered (session memory)
   if (sessionStorage.getItem('tmh-entered')) {
     document.getElementById('landing').classList.add('hidden');
   }
@@ -1620,6 +1940,112 @@
     sessionStorage.setItem('tmh-entered', '1');
     _origEnter();
   };
+
+  // ---- GLOBAL TOTP GATE ----
+  // If already verified this session, hide the gate immediately
+  if (sessionStorage.getItem('tmh-totp-verified')) {
+    document.getElementById('portal-totp-gate').style.display = 'none';
+  } else {
+    // Initialize gate TOTP setup if no secret exists
+    const gateSecret = localStorage.getItem('tmh-totp-secret');
+    if (!gateSecret) {
+      const newSecret = generateSecret();
+      localStorage.setItem('tmh-totp-secret-pending', newSecret);
+      document.getElementById('gate-totp-setup').style.display = 'block';
+      renderGateQR(newSecret);
+    }
+  }
+
+  function renderGateQR(secret) {
+    const uri = 'otpauth://totp/Bushwick%20HQ:terence.hatten%40gmail.com?secret=' + secret + '&issuer=Bushwick%20HQ&digits=6&period=30';
+    const el = document.getElementById('gate-totp-qr');
+    el.innerHTML = '';
+    document.getElementById('gate-totp-secret-display').textContent = secret.match(/.{1,4}/g).join(' ');
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
+    script.onload = function() {
+      try {
+        const qr = qrcode(0, 'M');
+        qr.addData(uri);
+        qr.make();
+        el.innerHTML = qr.createImgTag(5, 8);
+      } catch(e) {
+        el.innerHTML = '<div style="font-size:0.75rem;color:#666;">QR failed — use the manual secret below.</div>';
+      }
+    };
+    script.onerror = function() {
+      el.innerHTML = '<div style="font-size:0.75rem;color:#666;">QR failed — use the manual secret below.</div>';
+    };
+    document.head.appendChild(script);
+  }
+
+  function confirmGateTotpSetup() {
+    const pending = localStorage.getItem('tmh-totp-secret-pending');
+    if (pending) {
+      localStorage.setItem('tmh-totp-secret', pending);
+      localStorage.removeItem('tmh-totp-secret-pending');
+      document.getElementById('gate-totp-setup').style.display = 'none';
+      const msg = document.getElementById('gate-totp-msg');
+      msg.style.color = 'var(--green)';
+      msg.textContent = 'TOTP configured! Now enter a code to unlock.';
+    }
+  }
+
+  let _gateFailedAttempts = 0;
+  let _gateLockoutUntil = 0;
+
+  async function verifyGateTotp() {
+    const now = Date.now();
+    const msg = document.getElementById('gate-totp-msg');
+    if (now < _gateLockoutUntil) {
+      const secs = Math.ceil((_gateLockoutUntil - now) / 1000);
+      msg.style.color = 'var(--red)';
+      msg.textContent = 'Too many attempts. Try again in ' + secs + 's.';
+      return;
+    }
+    const secret = localStorage.getItem('tmh-totp-secret');
+    if (!secret) {
+      msg.style.color = 'var(--orange)';
+      msg.textContent = 'Scan the QR code above first, then click "I\'ve scanned it".';
+      return;
+    }
+    const code = document.getElementById('gate-totp-input').value.replace(/\s/g, '');
+    if (code.length !== 6 || !/^\d+$/.test(code)) {
+      msg.style.color = 'var(--red)';
+      msg.textContent = 'Enter a 6-digit code from Google Authenticator.';
+      return;
+    }
+    const valid = await verifyTOTP(secret, code);
+    if (valid) {
+      sessionStorage.setItem('tmh-totp-verified', '1');
+      document.getElementById('portal-totp-gate').style.display = 'none';
+      _gateFailedAttempts = 0;
+      // Check if API key is set for terminal
+      if (!localStorage.getItem('tmh-api-key')) {
+        promptApiKey();
+      }
+    } else {
+      _gateFailedAttempts++;
+      msg.style.color = 'var(--red)';
+      if (_gateFailedAttempts >= 5) {
+        _gateLockoutUntil = now + 60000;
+        msg.textContent = 'Too many failed attempts. Locked for 60 seconds.';
+        _gateFailedAttempts = 0;
+      } else {
+        msg.textContent = 'Invalid code. ' + (5 - _gateFailedAttempts) + ' attempts remaining.';
+      }
+      document.getElementById('gate-totp-input').value = '';
+    }
+  }
+
+  function promptApiKey() {
+    const existing = localStorage.getItem('tmh-api-key');
+    if (existing) return;
+    const key = prompt('Enter your Anthropic API key (sk-ant-...) for Remote Terminal.\nThis is stored in your browser only and sent directly to Anthropic.\n\nLeave blank to skip for now.');
+    if (key && key.trim().startsWith('sk-ant-')) {
+      localStorage.setItem('tmh-api-key', key.trim());
+    }
+  }
 
   function showPage(id, btn) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1899,12 +2325,19 @@
     const key = document.getElementById('api-key-input').value.trim();
     const msg = document.getElementById('api-key-msg');
     if (!key.startsWith('sk-ant-')) { msg.style.color = 'var(--red)'; msg.textContent = 'Key should start with sk-ant-'; return; }
-    sessionStorage.setItem('tmh-api-key', key);
+    localStorage.setItem('tmh-api-key', key);
     document.getElementById('api-key-input').value = '';
     msg.style.color = 'var(--green)';
-    msg.textContent = 'API key saved to browser storage.';
+    msg.textContent = 'API key saved permanently to this browser.';
     document.getElementById('terminal-status').textContent = 'Connected';
     document.getElementById('terminal-status').style.color = 'var(--green)';
+  }
+  // Auto-detect saved API key on page load
+  if (localStorage.getItem('tmh-api-key')) {
+    setTimeout(() => {
+      const s = document.getElementById('terminal-status');
+      if (s) { s.textContent = 'Connected'; s.style.color = 'var(--green)'; }
+    }, 500);
   }
 
   function appendTerminal(role, text) {
@@ -1935,7 +2368,7 @@
     if (!text) return;
     input.value = '';
 
-    const apiKey = sessionStorage.getItem('tmh-api-key');
+    const apiKey = localStorage.getItem('tmh-api-key');
     if (!apiKey) { appendTerminal('error', 'No API key set. Go to Connection Settings below.'); return; }
 
     appendTerminal('user', text);
@@ -1979,7 +2412,7 @@
 
   // Load saved API key state on init
   (function initTerminal() {
-    const key = sessionStorage.getItem('tmh-api-key');
+    const key = localStorage.getItem('tmh-api-key');
     if (key) {
       document.getElementById('terminal-status').textContent = 'Connected';
       document.getElementById('terminal-status').style.color = 'var(--green)';
@@ -2117,7 +2550,7 @@
       preview.appendChild(img);
       msg.textContent = 'Analyzing label with Claude...';
       msg.style.color = 'var(--orange)';
-      const apiKey = sessionStorage.getItem('tmh-api-key');
+      const apiKey = localStorage.getItem('tmh-api-key');
       if (!apiKey) { msg.style.color = 'var(--red)'; msg.textContent = 'Set your API key in Remote Terminal settings first.'; return; }
       try {
         const base64 = e.target.result.split(',')[1];
