@@ -503,7 +503,7 @@
     </div>
 
     <div class="landing-buttons">
-      <button class="landing-btn landing-btn-primary" onclick="enterPortal()">Enter</button>
+      <button class="landing-btn landing-btn-primary" onclick="enterWithAuth()">Enter</button>
       <button class="landing-btn landing-btn-secondary" onclick="showAccessModal()">Request Access</button>
     </div>
   </div>
@@ -601,7 +601,7 @@
     <button class="nav-item" onclick="showPage('website', this)">
       <span class="icon">&#127760;</span> Website Build
     </button>
-    <button class="nav-item" onclick="showPage('access', this)">
+    <button class="nav-item" onclick="showPage('access', this)" data-admin-only>
       <span class="icon">&#128101;</span> Access Control
     </button>
     <button class="nav-item" onclick="showPage('terminal', this)">
@@ -1115,6 +1115,28 @@
     <div class="info-box">
       <h4>How secrets flow</h4>
       <p>When Claude needs to talk to Home Assistant, it reads the long-lived access token from <code>~/claude-config/secrets/ha-token.secret</code> — a file that exists as plaintext on the local PC but is AES-256 encrypted by git-crypt before being pushed to GitHub. The same token is stored in 1Password vault "Claude Config" as a backup with full audit trail. The portal itself contains zero API keys or tokens — the Remote Terminal's Anthropic API key is entered by the user and stored in the browser's localStorage, sent directly to Anthropic's API with no intermediary server.</p>
+    </div>
+
+    <!-- Audit Log (admin only) -->
+    <div data-admin-only style="margin-top:1.5rem;">
+      <div class="section-title">Audit Log</div>
+      <div class="card" style="cursor:default;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+          <h3>&#128270; Recent Security Events</h3>
+          <button onclick="clearAuditLog()" style="padding:4px 12px;border-radius:6px;border:1px solid var(--red);background:none;color:var(--red);font-size:0.7rem;cursor:pointer;">Clear Log</button>
+        </div>
+        <div id="audit-log-viewer" style="max-height:300px;overflow-y:auto;font-family:'Cascadia Code',monospace;font-size:0.75rem;"></div>
+      </div>
+    </div>
+
+    <!-- Known Devices (admin only) -->
+    <div data-admin-only style="margin-top:0.75rem;">
+      <div class="card" style="cursor:default;">
+        <h3>&#128241; Known Devices</h3>
+        <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:0.75rem;">Devices that have successfully authenticated. New device logins are flagged in the audit log.</p>
+        <div id="known-devices-list" style="font-family:'Cascadia Code',monospace;font-size:0.75rem;"></div>
+        <button onclick="clearKnownDevices()" style="margin-top:0.5rem;padding:4px 12px;border-radius:6px;border:1px solid var(--orange);background:none;color:var(--orange);font-size:0.7rem;cursor:pointer;">Reset Devices (forces re-auth for all)</button>
+      </div>
     </div>
   </div>
 
@@ -1854,8 +1876,20 @@
   // ---- VISITOR GATE ----
   // Cloudflare Access sets a JWT in the CF_Authorization cookie with the user's email.
   // If the user is not in the approved list, show only the access request page.
-  const APPROVED_EMAILS = ['terence.hatten@gmail.com'];
+  // ============================================================
+  // SECURITY CORE — Defense-in-depth authentication system
+  // Layer 1: Cloudflare Access (email OTP, network edge)
+  // Layer 2: Approved user check (repo-backed allowlist)
+  // Layer 3: TOTP per session (Google Authenticator)
+  // Layer 4: Admin tier (email === admin + TOTP re-verify)
+  // Layer 5: Device fingerprinting + audit logging
+  // ============================================================
 
+  const ADMIN_EMAIL = 'terence.hatten@gmail.com';
+  let _approvedUsers = [];
+  let _auditLog = [];
+
+  // ---- IDENTITY RESOLUTION ----
   function getCfEmail() {
     try {
       const cookie = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('CF_Authorization='));
@@ -1866,10 +1900,7 @@
     } catch(e) { return null; }
   }
 
-  // Auth: CF Access handles authentication at the network level (OTP).
-  // Terminal and admin panel have their own TOTP gates.
-  // Resolve visitor email for personalization (greeting, etc.)
-  (async function resolveVisitor() {
+  async function resolveIdentity() {
     let email = getCfEmail();
     if (!email) {
       try {
@@ -1878,12 +1909,89 @@
       } catch(e) {}
     }
     window._visitorEmail = email;
-  })();
+    window._isAdmin = (email === ADMIN_EMAIL);
+    return email;
+  }
 
+  // ---- APPROVED USERS (repo-backed) ----
+  async function loadApprovedUsers() {
+    try {
+      const resp = await fetch('/data/approved-users.json?t=' + Date.now());
+      if (resp.ok) _approvedUsers = await resp.json();
+    } catch(e) {}
+    // Merge any locally-approved users (admin can approve on-device before push)
+    const local = JSON.parse(localStorage.getItem('tmh-approved-users') || '[]');
+    local.forEach(e => { if (!_approvedUsers.includes(e)) _approvedUsers.push(e); });
+  }
+
+  function isApproved(email) {
+    if (!email) return false;
+    return _approvedUsers.includes(email.toLowerCase()) || email.toLowerCase() === ADMIN_EMAIL;
+  }
+
+  // ---- DEVICE FINGERPRINTING ----
+  function getDeviceFingerprint() {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.textBaseline = 'top';
+    ctx.font = '14px Arial';
+    ctx.fillText('fp', 2, 2);
+    const canvasHash = canvas.toDataURL().slice(-32);
+    const raw = [
+      navigator.userAgent,
+      navigator.language,
+      screen.width + 'x' + screen.height,
+      screen.colorDepth,
+      new Date().getTimezoneOffset(),
+      navigator.hardwareConcurrency || 'unknown',
+      navigator.platform,
+      canvasHash
+    ].join('|');
+    // Simple hash
+    let hash = 0;
+    for (let i = 0; i < raw.length; i++) {
+      const c = raw.charCodeAt(i);
+      hash = ((hash << 5) - hash) + c;
+      hash |= 0;
+    }
+    return 'dev_' + Math.abs(hash).toString(36);
+  }
+
+  // ---- AUDIT LOGGING ----
+  function auditLog(action, detail) {
+    const entry = {
+      ts: new Date().toISOString(),
+      email: window._visitorEmail || 'unknown',
+      action: action,
+      detail: detail || '',
+      fp: getDeviceFingerprint(),
+      ua: navigator.userAgent.substring(0, 100)
+    };
+    _auditLog.push(entry);
+    // Persist to localStorage (displayed in Security page)
+    const stored = JSON.parse(localStorage.getItem('tmh-audit-log') || '[]');
+    stored.push(entry);
+    // Keep last 200 entries
+    if (stored.length > 200) stored.splice(0, stored.length - 200);
+    localStorage.setItem('tmh-audit-log', JSON.stringify(stored));
+  }
+
+  // ---- KNOWN DEVICES ----
+  function checkKnownDevice() {
+    const fp = getDeviceFingerprint();
+    const known = JSON.parse(localStorage.getItem('tmh-known-devices') || '[]');
+    if (!known.includes(fp)) {
+      known.push(fp);
+      localStorage.setItem('tmh-known-devices', JSON.stringify(known));
+      return false; // new device
+    }
+    return true; // known device
+  }
+
+  // ---- LOGOUT ----
   function logoutPortal() {
-    // Clear session state (TOTP verification, entered flag) but keep localStorage (API key, TOTP secret)
+    auditLog('logout', 'User logged out');
     sessionStorage.clear();
-    // CF Access logout endpoint revokes the session cookie
     window.location.href = '/.cdn-cgi/access/logout';
   }
 
@@ -1910,45 +2018,69 @@
       msg.textContent = 'Please enter a valid email address.';
       return;
     }
+    if (isApproved(email)) {
+      msg.style.color = 'rgba(191,155,80,0.8)';
+      msg.textContent = 'This email is already approved. Click Enter to proceed.';
+      return;
+    }
     const requests = JSON.parse(localStorage.getItem('tmh-access-requests') || '[]');
     if (requests.find(r => r.email === email && r.status === 'pending')) {
       msg.style.color = 'rgba(191,155,80,0.8)';
       msg.textContent = 'A request for this email is already pending.';
       return;
     }
-    const approved = JSON.parse(localStorage.getItem('tmh-approved-users') || '[]');
-    if (APPROVED_EMAILS.includes(email) || approved.includes(email)) {
-      msg.style.color = 'rgba(191,155,80,0.8)';
-      msg.textContent = 'This email is already approved. Click Enter to proceed.';
-      return;
-    }
     requests.push({ email, date: new Date().toISOString().slice(0,10), status: 'pending' });
     localStorage.setItem('tmh-access-requests', JSON.stringify(requests));
+    auditLog('access_request', email);
     msg.style.color = '#22c55e';
     msg.textContent = 'Request submitted! The administrator will review it shortly.';
     document.getElementById('landing-email').value = '';
-    // Also update the inner access control page
     if (typeof renderPendingRequests === 'function') renderPendingRequests();
   }
 
-  // Auto-dismiss landing if user has previously entered (session memory)
-  if (sessionStorage.getItem('tmh-entered')) {
-    document.getElementById('landing').classList.add('hidden');
-  }
-  const _origEnter = enterPortal;
-  enterPortal = function() {
+  // ---- ENTER PORTAL FLOW ----
+  // "Enter" button → check CF identity → check if approved → TOTP gate
+  async function enterWithAuth() {
+    const email = await resolveIdentity();
+    if (!email) {
+      // No CF identity — shouldn't happen if CF Access is active, but handle gracefully
+      alert('Could not verify your identity. Please ensure you completed the Cloudflare email verification.');
+      return;
+    }
+    if (!isApproved(email)) {
+      // Not approved — show pending message
+      auditLog('enter_denied', email + ' not in approved list');
+      document.getElementById('landing').classList.add('hidden');
+      document.getElementById('portal-totp-gate').querySelector('h2').textContent = 'Access Pending';
+      document.getElementById('portal-totp-gate').querySelector('p').textContent =
+        'Your email (' + esc(email) + ') has not been approved yet. Please request access from the landing page.';
+      document.getElementById('gate-totp-input').style.display = 'none';
+      document.getElementById('portal-totp-gate').querySelector('button[onclick="verifyGateTotp()"]').style.display = 'none';
+      return;
+    }
+    // Approved — proceed to TOTP gate
+    auditLog('enter_approved', email);
     sessionStorage.setItem('tmh-entered', '1');
-    _origEnter();
-  };
+    document.getElementById('landing').classList.add('hidden');
+    // TOTP gate is already visible — user needs to enter code
+  }
+
+  // Auto-dismiss landing + TOTP gate if already verified this session
+  if (sessionStorage.getItem('tmh-entered') && sessionStorage.getItem('tmh-totp-verified')) {
+    document.getElementById('landing').classList.add('hidden');
+    document.getElementById('portal-totp-gate').style.display = 'none';
+  } else if (sessionStorage.getItem('tmh-entered')) {
+    document.getElementById('landing').classList.add('hidden');
+    // TOTP gate still shows
+  }
 
   // ---- GLOBAL TOTP GATE ----
-  // If already verified this session, hide the gate immediately
   if (sessionStorage.getItem('tmh-totp-verified')) {
     document.getElementById('portal-totp-gate').style.display = 'none';
   } else {
-    // Initialize gate TOTP setup if no secret exists
     const gateSecret = localStorage.getItem('tmh-totp-secret');
     if (!gateSecret) {
+      // Show TOTP setup for first-time approved user
       const newSecret = generateSecret();
       localStorage.setItem('tmh-totp-secret-pending', newSecret);
       document.getElementById('gate-totp-setup').style.display = 'block';
@@ -1957,7 +2089,8 @@
   }
 
   function renderGateQR(secret) {
-    const uri = 'otpauth://totp/Bushwick%20HQ:terence.hatten%40gmail.com?secret=' + secret + '&issuer=Bushwick%20HQ&digits=6&period=30';
+    const email = window._visitorEmail || 'user';
+    const uri = 'otpauth://totp/Bushwick%20HQ:' + encodeURIComponent(email) + '?secret=' + secret + '&issuer=Bushwick%20HQ&digits=6&period=30';
     const el = document.getElementById('gate-totp-qr');
     el.innerHTML = '';
     document.getElementById('gate-totp-secret-display').textContent = secret.match(/.{1,4}/g).join(' ');
@@ -2001,6 +2134,7 @@
       const secs = Math.ceil((_gateLockoutUntil - now) / 1000);
       msg.style.color = 'var(--red)';
       msg.textContent = 'Too many attempts. Try again in ' + secs + 's.';
+      auditLog('totp_lockout', 'Rate limited');
       return;
     }
     const secret = localStorage.getItem('tmh-totp-secret');
@@ -2020,12 +2154,18 @@
       sessionStorage.setItem('tmh-totp-verified', '1');
       document.getElementById('portal-totp-gate').style.display = 'none';
       _gateFailedAttempts = 0;
-      // Check if API key is set for terminal
-      if (!localStorage.getItem('tmh-api-key')) {
-        promptApiKey();
+      const isNew = !checkKnownDevice();
+      auditLog('totp_success', isNew ? 'NEW DEVICE' : 'known device');
+      // Show/hide admin UI based on email
+      if (window._isAdmin) {
+        document.querySelectorAll('[data-admin-only]').forEach(el => el.style.display = '');
+      } else {
+        // Hide admin nav items for non-admin users
+        document.querySelectorAll('[data-admin-only]').forEach(el => el.style.display = 'none');
       }
     } else {
       _gateFailedAttempts++;
+      auditLog('totp_fail', 'Attempt ' + _gateFailedAttempts);
       msg.style.color = 'var(--red)';
       if (_gateFailedAttempts >= 5) {
         _gateLockoutUntil = now + 60000;
@@ -2038,14 +2178,12 @@
     }
   }
 
-  function promptApiKey() {
-    const existing = localStorage.getItem('tmh-api-key');
-    if (existing) return;
-    const key = prompt('Enter your Anthropic API key (sk-ant-...) for Remote Terminal.\nThis is stored in your browser only and sent directly to Anthropic.\n\nLeave blank to skip for now.');
-    if (key && key.trim().startsWith('sk-ant-')) {
-      localStorage.setItem('tmh-api-key', key.trim());
-    }
-  }
+  // ---- BOOTSTRAP ----
+  // Load approved users and resolve identity on page load
+  (async function securityBootstrap() {
+    await loadApprovedUsers();
+    await resolveIdentity();
+  })();
 
   function showPage(id, btn) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -2065,25 +2203,25 @@
   function submitAccessRequest() {
     const email = document.getElementById('access-email').value.trim();
     const msg = document.getElementById('access-msg');
-    if (!email || !email.includes('@gmail.com')) {
+    if (!email || !email.includes('@')) {
       msg.style.color = 'var(--red)';
-      msg.textContent = 'Please enter a valid Gmail address.';
+      msg.textContent = 'Please enter a valid email address.';
       return;
     }
-    const requests = JSON.parse(localStorage.getItem('tmh-access-requests') || '[]');
-    if (requests.find(r => r.email === email)) {
-      msg.style.color = 'var(--orange)';
-      msg.textContent = 'This email already has a pending request.';
-      return;
-    }
-    const approved = JSON.parse(localStorage.getItem('tmh-approved-users') || '[]');
-    if (approved.find(a => a === email) || email === 'terence.hatten@gmail.com') {
+    if (isApproved(email)) {
       msg.style.color = 'var(--green)';
       msg.textContent = 'This email is already approved!';
       return;
     }
+    const requests = JSON.parse(localStorage.getItem('tmh-access-requests') || '[]');
+    if (requests.find(r => r.email === email && r.status === 'pending')) {
+      msg.style.color = 'var(--orange)';
+      msg.textContent = 'This email already has a pending request.';
+      return;
+    }
     requests.push({ email, date: new Date().toISOString().slice(0,10), status: 'pending' });
     localStorage.setItem('tmh-access-requests', JSON.stringify(requests));
+    auditLog('access_request_inner', email);
     msg.style.color = 'var(--green)';
     msg.textContent = 'Request submitted! The admin will review it.';
     document.getElementById('access-email').value = '';
@@ -2107,20 +2245,28 @@
   }
 
   function approveRequest(idx) {
+    if (!window._isAdmin) { alert('Admin only.'); return; }
     const requests = JSON.parse(localStorage.getItem('tmh-access-requests') || '[]');
     const pending = requests.filter(r => r.status === 'pending');
+    const email = pending[idx].email;
+    // Add to local approved list (will be synced to repo by admin)
     const approved = JSON.parse(localStorage.getItem('tmh-approved-users') || '[]');
-    approved.push(pending[idx].email);
+    if (!approved.includes(email)) approved.push(email);
     localStorage.setItem('tmh-approved-users', JSON.stringify(approved));
+    // Also add to runtime list
+    if (!_approvedUsers.includes(email)) _approvedUsers.push(email);
     pending[idx].status = 'approved';
     localStorage.setItem('tmh-access-requests', JSON.stringify(requests));
+    auditLog('user_approved', email);
     renderPendingRequests();
     renderApprovedUsers();
   }
 
   function denyRequest(idx) {
+    if (!window._isAdmin) { alert('Admin only.'); return; }
     const requests = JSON.parse(localStorage.getItem('tmh-access-requests') || '[]');
     const pending = requests.filter(r => r.status === 'pending');
+    auditLog('user_denied', pending[idx].email);
     pending[idx].status = 'denied';
     localStorage.setItem('tmh-access-requests', JSON.stringify(requests));
     renderPendingRequests();
@@ -2128,32 +2274,93 @@
 
   function renderApprovedUsers() {
     const el = document.getElementById('approved-users');
-    const approved = JSON.parse(localStorage.getItem('tmh-approved-users') || '[]');
     let html = `<div class="status-item" style="margin-bottom:0.5rem;"><span class="dot dot-green"></span><span>terence.hatten@gmail.com</span><span class="val">Admin &middot; Owner</span></div>`;
-    approved.forEach(e => {
+    _approvedUsers.forEach(e => {
+      if (e === ADMIN_EMAIL) return; // already shown above
       html += `<div class="status-item" style="margin-bottom:0.5rem;"><span class="dot dot-green"></span><span>${esc(e)}</span><span class="val">Approved</span></div>`;
     });
     el.innerHTML = html;
   }
 
   async function toggleAdminAuth() {
-    const code = prompt('Enter authenticator code:');
+    // Layer 4: Admin requires CF email match + fresh TOTP
+    if (!window._isAdmin) {
+      alert('Admin access is restricted to the site owner.');
+      auditLog('admin_denied', 'Non-admin attempted admin unlock: ' + (window._visitorEmail || 'unknown'));
+      return;
+    }
+    const code = prompt('Enter authenticator code to unlock admin:');
     if (code === null) return;
     const secret = localStorage.getItem('tmh-totp-secret');
-    if (!secret) { alert('TOTP not configured yet. Set it up in Remote Terminal first.'); return; }
+    if (!secret) { alert('TOTP not configured.'); return; }
     const valid = await verifyTOTP(secret, code.replace(/\s/g, ''));
     if (valid) {
       window._adminUnlocked = true;
+      auditLog('admin_unlock', 'Admin panel unlocked');
       document.getElementById('admin-lock-btn').innerHTML = '&#128275; Admin Unlocked';
       document.getElementById('admin-lock-btn').style.borderColor = 'var(--green)';
       document.getElementById('admin-lock-btn').style.color = 'var(--green)';
       document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'inline-block');
     } else {
-      alert('Invalid code. Use the same authenticator app as Remote Terminal.');
+      auditLog('admin_fail', 'Invalid TOTP for admin unlock');
+      alert('Invalid code.');
     }
   }
   renderPendingRequests();
   renderApprovedUsers();
+
+  // ---- AUDIT LOG + DEVICE VIEWERS ----
+  function renderAuditLog() {
+    const el = document.getElementById('audit-log-viewer');
+    if (!el) return;
+    const log = JSON.parse(localStorage.getItem('tmh-audit-log') || '[]').reverse();
+    if (!log.length) { el.innerHTML = '<div style="color:var(--text-dim);">No events recorded.</div>'; return; }
+    el.innerHTML = log.map(e => {
+      const color = e.action.includes('fail') || e.action.includes('denied') || e.action.includes('lockout') ? 'var(--red)' :
+                    e.action.includes('success') || e.action.includes('approved') || e.action.includes('unlock') ? 'var(--green)' : 'var(--text-dim)';
+      const isNewDevice = e.detail && e.detail.includes('NEW DEVICE');
+      return `<div style="padding:4px 0;border-bottom:1px solid var(--border);${isNewDevice ? 'background:rgba(239,68,68,0.08);padding:4px 6px;border-radius:4px;' : ''}">
+        <span style="color:var(--text-dim);">${e.ts.substring(0,19).replace('T',' ')}</span>
+        <span style="color:${color};font-weight:600;margin:0 6px;">${esc(e.action)}</span>
+        <span style="color:var(--text);">${esc(e.email)}</span>
+        ${e.detail ? '<span style="color:var(--text-dim);margin-left:6px;">' + esc(e.detail) + '</span>' : ''}
+        <span style="color:var(--text-dim);font-size:0.65rem;margin-left:6px;">[${esc(e.fp)}]</span>
+      </div>`;
+    }).join('');
+  }
+
+  function clearAuditLog() {
+    if (!confirm('Clear all audit log entries?')) return;
+    localStorage.removeItem('tmh-audit-log');
+    _auditLog = [];
+    renderAuditLog();
+  }
+
+  function renderKnownDevices() {
+    const el = document.getElementById('known-devices-list');
+    if (!el) return;
+    const devices = JSON.parse(localStorage.getItem('tmh-known-devices') || '[]');
+    if (!devices.length) { el.innerHTML = '<div style="color:var(--text-dim);">No devices registered.</div>'; return; }
+    const currentFp = getDeviceFingerprint();
+    el.innerHTML = devices.map(d =>
+      `<div style="padding:3px 0;"><span class="dot ${d === currentFp ? 'dot-green' : 'dot-orange'}"></span> ${esc(d)} ${d === currentFp ? '<span style="color:var(--green);font-size:0.7rem;">(this device)</span>' : ''}</div>`
+    ).join('');
+  }
+
+  function clearKnownDevices() {
+    if (!confirm('This will require TOTP re-verification on all devices. Continue?')) return;
+    localStorage.removeItem('tmh-known-devices');
+    auditLog('devices_cleared', 'All known devices reset');
+    renderKnownDevices();
+  }
+
+  // Render on page load if admin
+  setTimeout(() => {
+    if (window._isAdmin && sessionStorage.getItem('tmh-totp-verified')) {
+      renderAuditLog();
+      renderKnownDevices();
+    }
+  }, 1000);
 
   // ---- REMOTE TERMINAL (TOTP 2FA) ----
   let _terminalUnlocked = false;
